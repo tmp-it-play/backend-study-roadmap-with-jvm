@@ -41,16 +41,19 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     })}
     <Link href="/practice" className="nav-notes" aria-current={pathname === '/practice' ? 'page' : undefined}>직접 해보는 실습 <span><ArrowIcon direction="up-right" /></span></Link>
     <Link href="/notes" className="nav-notes" aria-current={pathname === '/notes' ? 'page' : undefined}><span><CoffeeEmoji /> 보충 지식</span><span>{notes.length}</span></Link>
-    <p className="nav-foot">Java와 Kotlin에서 출발해<br />Spring Boot 운영까지.</p>
   </>;
+  const navFooter = <div className="nav-footer">
+    <Link href="/license" aria-current={pathname === '/license' ? 'page' : undefined}>GPL v3 라이선스</Link>
+    <a href="https://github.com/tmp-it-play/backend-study-roadmap-with-jvm" target="_blank" rel="noopener noreferrer" aria-label="GitHub 저장소 (새 탭)">GitHub <ArrowIcon direction="up-right" /></a>
+  </div>;
   return <>
     <a className="skip-link" href="#main">본문으로 건너뛰기</a>
     <header className="top"><div className="top-inner">
-      <details ref={menu} className="mobile-menu"><summary aria-label="학습 메뉴">☰</summary><nav aria-label="접이식 학습 단계" onClick={() => { if (menu.current) menu.current.open = false; }}>{nav}</nav></details>
+      <details ref={menu} className="mobile-menu"><summary aria-label="학습 메뉴">☰</summary><nav aria-label="접이식 학습 단계" onClick={() => { if (menu.current) menu.current.open = false; }}>{nav}{navFooter}</nav></details>
       <Link href="/" className="brand" aria-label="Spring Boot 백엔드 로드맵">Spring Boot <b>로드맵</b></Link>
       <Link href="/#search" className="search-link" aria-label="학습 내용 검색"><span aria-hidden="true">⌕</span> <span>어떤 개념이 궁금한가요?</span><kbd>⌘ K</kbd></Link>
     </div></header>
-    <aside className="sidebar"><nav aria-label="학습 단계">{nav}</nav></aside>
+    <aside className="sidebar"><nav aria-label="학습 단계">{nav}</nav>{navFooter}</aside>
     <main id="main" className="main">{storageError && <p role="status" className="storage-warning">브라우저 저장 공간을 사용할 수 없어 이번 진도는 새로고침하면 사라질 수 있습니다.</p>}{children}</main>
   </>;
 }

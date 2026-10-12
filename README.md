@@ -18,3 +18,5 @@ npm run dev
 브라우저에서 [로드맵 열기](http://127.0.0.1:3000).
 
 [Nest 백엔드 로드맵](https://github.com/tmp-it-play/backend-study-roadmap-with-nest/tree/246353e98b5db66b004fc7e5e0cc34449078c768)의 학습 방식과 SVG 일러스트 코드를 참고했습니다.
+
+[GNU GPL v3.0](LICENSE) 라이선스로 배포합니다. 외부 자료는 각 자료에 명시된 라이선스를 따릅니다.
