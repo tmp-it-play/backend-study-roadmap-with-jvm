@@ -1,0 +1,1599 @@
+{
+  "title": "JVM 백엔드 학습 로드맵",
+  "version": "0.1",
+  "reviewedAt": "2026-10-12",
+  "baseline": {
+    "java": "25 LTS",
+    "springBoot": "4.1.x",
+    "gradle": "9.1 이상",
+    "kotlin": "Spring Initializr와 선택한 Boot 버전의 호환 조합으로 고정"
+  },
+  "stages": [
+    {
+      "id": "getting-started",
+      "title": "개발 환경과 빌드 도구",
+      "area": "준비",
+      "level": "입문",
+      "summary": "내 컴퓨터에서 시작해 누구나 같은 방식으로 실행할 수 있는 프로젝트를 만듭니다.",
+      "goal": "명령 한 번으로 빌드하고 테스트할 수 있다.",
+      "prerequisites": [],
+      "chapters": [
+        {
+          "id": "jvm-toolchain",
+          "title": "JDK와 개발 환경",
+          "topics": [
+            "JDK·JRE·JVM의 역할",
+            "JDK 배포판과 LTS 선택",
+            "JAVA_HOME과 PATH",
+            "IDE SDK·Gradle JVM·Java Toolchain 구분"
+          ]
+        },
+        {
+          "id": "terminal-git",
+          "title": "터미널과 Git",
+          "topics": [
+            "경로·환경 변수·프로세스 확인",
+            "커밋·브랜치·PR의 기본 흐름",
+            "gitignore와 비밀 정보 관리",
+            "실행 방법을 README로 남기기"
+          ]
+        },
+        {
+          "id": "gradle-model",
+          "title": "Gradle 프로젝트의 구조",
+          "topics": [
+            "Wrapper와 버전 고정",
+            "settings 파일과 build 파일",
+            "Project·Task·Plugin의 관계",
+            "초기화·구성·실행 단계"
+          ]
+        },
+        {
+          "id": "gradle-dsl",
+          "title": "Groovy DSL과 Kotlin DSL",
+          "topics": [
+            "build.gradle과 build.gradle.kts 비교",
+            "Groovy의 클로저·문자열·괄호 생략",
+            "Kotlin의 수신 객체 람다·타입 접근자",
+            "같은 플러그인·의존성·태스크를 두 DSL로 작성"
+          ]
+        },
+        {
+          "id": "dependencies",
+          "title": "의존성과 플러그인",
+          "topics": [
+            "저장소와 의존성 좌표",
+            "implementation·api·compileOnly·runtimeOnly",
+            "전이 의존성과 충돌 확인",
+            "BOM·Version Catalog·플러그인 버전의 역할"
+          ]
+        },
+        {
+          "id": "first-build",
+          "title": "첫 빌드와 첫 테스트",
+          "topics": [
+            "Java·Kotlin 소스 디렉터리",
+            "Gradle test와 JUnit Jupiter",
+            "컴파일·테스트·패키징 구분",
+            "Maven의 pom.xml과 주요 개념 비교"
+          ]
+        }
+      ],
+      "lab": "Java와 Kotlin으로 각각 인사말 함수를 만들고 테스트한다. 동일한 빌드를 두 DSL로 표현하고 Wrapper를 통해 실행한다.",
+      "checks": [
+        "IDE 없이 ./gradlew test를 실행할 수 있다.",
+        "애플리케이션 언어와 Gradle DSL 선택이 독립적임을 설명한다."
+      ],
+      "sources": [
+        {
+          "title": "Gradle 사용자 가이드",
+          "url": "https://docs.gradle.org/current/userguide/userguide.html"
+        },
+        {
+          "title": "Gradle Kotlin DSL",
+          "url": "https://docs.gradle.org/current/userguide/kotlin_dsl.html"
+        }
+      ],
+      "optional": false
+    },
+    {
+      "id": "java",
+      "title": "Java 기본기",
+      "area": "언어",
+      "level": "입문",
+      "summary": "객체와 타입을 이해하고 테스트 가능한 작은 도메인을 구현합니다.",
+      "goal": "컬렉션과 객체를 이용해 주문 규칙을 구현한다.",
+      "prerequisites": [
+        "getting-started"
+      ],
+      "chapters": [
+        {
+          "id": "values-types",
+          "title": "값과 타입",
+          "topics": [
+            "기본형·참조형·박싱",
+            "변수·스코프·형 변환",
+            "조건·반복·switch 표현식",
+            "문자열·배열과 null"
+          ]
+        },
+        {
+          "id": "objects",
+          "title": "클래스와 객체지향",
+          "topics": [
+            "생성자·접근 제어·캡슐화",
+            "인터페이스·추상 클래스",
+            "상속과 합성의 선택",
+            "static·final과 객체 수명"
+          ]
+        },
+        {
+          "id": "equality",
+          "title": "동등성과 불변성",
+          "topics": [
+            "==와 equals",
+            "equals·hashCode 계약",
+            "가변 객체를 Map 키로 사용할 때의 문제",
+            "방어적 복사와 불변 객체"
+          ]
+        },
+        {
+          "id": "collections-generics",
+          "title": "컬렉션과 제네릭",
+          "topics": [
+            "List·Set·Map 구현과 선택",
+            "제네릭·타입 소거",
+            "와일드카드와 PECS",
+            "Comparable·Comparator"
+          ]
+        },
+        {
+          "id": "exceptions-io",
+          "title": "예외와 자원 관리",
+          "topics": [
+            "checked·unchecked 예외",
+            "예외 전환과 원인 보존",
+            "try-with-resources",
+            "파일·문자 인코딩·시간 API"
+          ]
+        },
+        {
+          "id": "functional-java",
+          "title": "람다와 Stream",
+          "topics": [
+            "함수형 인터페이스·메서드 참조",
+            "중간·최종 연산과 지연 평가",
+            "map·flatMap·collect",
+            "부수 효과·Optional·parallelStream 주의점"
+          ]
+        },
+        {
+          "id": "modern-java",
+          "title": "현대 Java의 데이터 모델링",
+          "topics": [
+            "record의 용도와 제한",
+            "sealed 계층과 패턴 매칭",
+            "enum과 상태 모델",
+            "언어 기능의 도입 버전과 preview 구분"
+          ]
+        },
+        {
+          "id": "java-design-test",
+          "title": "작은 설계와 테스트",
+          "topics": [
+            "책임을 나누는 기준",
+            "의존성을 생성자로 전달",
+            "경계값·예외 테스트",
+            "가격·수량·주문 상태를 값으로 표현"
+          ]
+        }
+      ],
+      "lab": "순수 Java 주문 프로그램을 만든다. 장바구니 합계·할인·주문 취소를 테스트하고 저장소를 인터페이스로 분리한다.",
+      "checks": [
+        "equals와 hashCode가 어긋나는 실패를 재현한다.",
+        "Spring 없이 주문 규칙을 단위 테스트한다."
+      ],
+      "sources": [
+        {
+          "title": "Java 공식 학습 자료",
+          "url": "https://dev.java/learn/"
+        }
+      ],
+      "optional": false
+    },
+    {
+      "id": "kotlin",
+      "title": "Kotlin 기본기",
+      "area": "언어",
+      "level": "입문",
+      "summary": "간결한 문법에 숨은 타입·상태·호출 규칙을 이해합니다.",
+      "goal": "Kotlin의 타입 체계를 활용해 주문 규칙을 구현한다.",
+      "prerequisites": [
+        "getting-started"
+      ],
+      "chapters": [
+        {
+          "id": "kotlin-values",
+          "title": "변수와 제어 흐름",
+          "topics": [
+            "val·var와 타입 추론",
+            "if·when 표현식",
+            "범위·반복·문자열 템플릿",
+            "Any·Unit·Nothing"
+          ]
+        },
+        {
+          "id": "null-safety",
+          "title": "null 안전성과 타입 좁히기",
+          "topics": [
+            "nullable 타입·safe call·Elvis",
+            "스마트 캐스트와 안정적인 참조",
+            "!!와 오류 처리",
+            "플랫폼 타입을 만날 때의 경계 검증"
+          ]
+        },
+        {
+          "id": "functions",
+          "title": "함수와 람다",
+          "topics": [
+            "기본값·이름 있는 인자",
+            "고차 함수·후행 람다",
+            "확장 함수의 정적 해석",
+            "수신 객체 람다로 DSL 읽기"
+          ]
+        },
+        {
+          "id": "kotlin-objects",
+          "title": "클래스와 프로퍼티",
+          "topics": [
+            "주 생성자·init·보조 생성자",
+            "프로퍼티·접근자·backing field",
+            "interface·open·override",
+            "object·companion object"
+          ]
+        },
+        {
+          "id": "kotlin-models",
+          "title": "데이터와 상태 모델링",
+          "topics": [
+            "data class와 copy의 범위",
+            "sealed class·interface와 when",
+            "enum·value class의 용도",
+            "구조 분해와 동등성"
+          ]
+        },
+        {
+          "id": "kotlin-collections",
+          "title": "컬렉션과 제네릭",
+          "topics": [
+            "읽기 전용·가변 컬렉션",
+            "컬렉션 연산과 Sequence",
+            "in·out·star projection",
+            "inline·reified 기초"
+          ]
+        },
+        {
+          "id": "kotlin-idioms",
+          "title": "Kotlin다운 코드와 함정",
+          "topics": [
+            "let·run·with·apply·also 선택",
+            "lateinit·lazy와 초기화",
+            "예외·use·Result 사용 기준",
+            "애너테이션 use-site target"
+          ]
+        },
+        {
+          "id": "kotlin-design-test",
+          "title": "도메인 구현과 테스트",
+          "topics": [
+            "Java 예제와 같은 주문 규칙 구현",
+            "JUnit Jupiter와 Kotlin 테스트 작성",
+            "nullable 반환과 명시적 실패 모델",
+            "코루틴의 suspend가 의미하는 것 맛보기"
+          ]
+        }
+      ],
+      "lab": "Java 과정과 동일한 요구사항을 Kotlin으로 구현한다. 가변 상태·null 처리·데이터 모델의 차이를 비교한다.",
+      "checks": [
+        "val과 객체의 불변성이 같은 뜻이 아님을 설명한다.",
+        "!! 없이 외부 입력의 null을 처리하고 테스트한다."
+      ],
+      "sources": [
+        {
+          "title": "Kotlin 시작하기",
+          "url": "https://kotlinlang.org/docs/getting-started.html"
+        },
+        {
+          "title": "Java와 Kotlin 비교",
+          "url": "https://kotlinlang.org/docs/comparison-to-java.html"
+        }
+      ],
+      "optional": false
+    },
+    {
+      "id": "jvm",
+      "title": "JVM과 언어 상호운용",
+      "area": "JVM",
+      "level": "기초 → 중급",
+      "summary": "두 언어의 코드가 같은 런타임에서 실행되는 과정을 따라갑니다.",
+      "goal": "메모리·타입·호출 문제를 JVM 관점에서 설명한다.",
+      "prerequisites": [
+        "getting-started"
+      ],
+      "chapters": [
+        {
+          "id": "execution",
+          "title": "소스에서 실행까지",
+          "topics": [
+            "javac·kotlinc와 바이트코드",
+            "클래스 로더와 클래스 초기화",
+            "인터프리터·JIT의 역할",
+            "javap로 Java·Kotlin 결과 비교"
+          ]
+        },
+        {
+          "id": "memory",
+          "title": "메모리와 객체 수명",
+          "topics": [
+            "스택·힙·메타스페이스의 개념",
+            "참조·도달 가능성과 GC Roots",
+            "메모리 누수와 정상적인 객체 증가",
+            "힙 크기와 프로세스 메모리의 차이"
+          ]
+        },
+        {
+          "id": "gc",
+          "title": "GC와 진단 입문",
+          "topics": [
+            "할당·수집·일시 정지",
+            "처리량과 지연 시간",
+            "GC 로그 읽는 순서",
+            "JFR·jcmd·힙 덤프 입문"
+          ]
+        },
+        {
+          "id": "jvm-threads",
+          "title": "스레드와 메모리 가시성",
+          "topics": [
+            "프로세스·스레드·동시성·병렬성",
+            "경쟁 상태와 원자성",
+            "synchronized·volatile 기초",
+            "happens-before와 안전한 공개 개념"
+          ]
+        },
+        {
+          "id": "interop",
+          "title": "Java와 Kotlin 상호운용",
+          "topics": [
+            "getter·setter와 프로퍼티 매핑",
+            "플랫폼 타입과 nullability 애너테이션",
+            "@JvmStatic·@JvmOverloads·@JvmName",
+            "checked 예외와 @Throws"
+          ]
+        },
+        {
+          "id": "jvm-types",
+          "title": "타입과 리플렉션",
+          "topics": [
+            "제네릭 소거·브리지 메서드",
+            "원시 타입·박싱·배열",
+            "리플렉션·애너테이션 유지 정책",
+            "Kotlin 리플렉션과 Java 리플렉션"
+          ]
+        },
+        {
+          "id": "mixed-project",
+          "title": "혼합 프로젝트 설계",
+          "topics": [
+            "Java에서 Kotlin API 호출",
+            "Kotlin에서 Java API 호출",
+            "컴파일 타깃과 실행 JDK 정렬",
+            "경계의 null·컬렉션·예외 계약"
+          ]
+        }
+      ],
+      "lab": "Java와 Kotlin이 서로 호출하는 모듈을 만든다. 바이트코드를 비교하고 공유 카운터의 경쟁 상태를 재현한다.",
+      "checks": [
+        "한 언어의 기초를 먼저 마친 뒤 다른 언어 예제를 비교한다.",
+        "플랫폼 타입과 null 안전성의 한계를 설명한다."
+      ],
+      "sources": [
+        {
+          "title": "JVM 학습 자료",
+          "url": "https://dev.java/learn/jvm/"
+        },
+        {
+          "title": "Kotlin Java 상호운용",
+          "url": "https://kotlinlang.org/docs/java-interop.html"
+        }
+      ],
+      "optional": false,
+      "anyPrerequisites": [
+        "java",
+        "kotlin"
+      ]
+    },
+    {
+      "id": "web",
+      "title": "HTTP와 웹의 기본",
+      "area": "백엔드 기초",
+      "level": "기초",
+      "summary": "클라이언트의 요청이 서버와 네트워크를 통과하는 과정을 이해합니다.",
+      "goal": "HTTP의 의미에 맞게 API 계약을 작성한다.",
+      "prerequisites": [
+        "getting-started"
+      ],
+      "chapters": [
+        {
+          "id": "network",
+          "title": "요청이 도착하는 과정",
+          "topics": [
+            "DNS·TCP·TLS의 역할",
+            "URL·포트·연결·타임아웃",
+            "프록시·로드 밸런서 개념",
+            "curl로 요청과 응답 관찰"
+          ]
+        },
+        {
+          "id": "http",
+          "title": "HTTP 메시지와 의미",
+          "topics": [
+            "메서드·상태 코드·헤더",
+            "안전성·멱등성·캐시 가능성",
+            "Content-Type·Accept·콘텐츠 협상",
+            "HTTP 버전별 연결 모델 개요"
+          ]
+        },
+        {
+          "id": "api-contract",
+          "title": "REST API 계약",
+          "topics": [
+            "리소스·URI·메서드 설계",
+            "페이지네이션·정렬·필터",
+            "오류 응답과 Problem Details",
+            "OpenAPI로 계약 표현"
+          ]
+        },
+        {
+          "id": "browser-security",
+          "title": "브라우저와 서버의 경계",
+          "topics": [
+            "쿠키·세션·SameSite",
+            "동일 출처 정책과 CORS",
+            "CSRF와 XSS의 차이",
+            "HTTPS·인증·인가 구분"
+          ]
+        },
+        {
+          "id": "reliability",
+          "title": "실패를 고려한 API",
+          "topics": [
+            "타임아웃·재시도·백오프",
+            "중복 요청과 멱등성 키",
+            "조건부 요청·ETag",
+            "하위 호환성과 API 변경"
+          ]
+        },
+        {
+          "id": "web-exercise",
+          "title": "API 설계 실습",
+          "topics": [
+            "회원·상품·주문 리소스 정의",
+            "성공·실패 응답 예시",
+            "중복 주문과 재시도 시나리오",
+            "계약 리뷰와 요청 컬렉션"
+          ]
+        }
+      ],
+      "lab": "주문 API의 요청·응답·오류 계약을 작성하고 curl 요청 모음을 만든다. 중복 요청을 어떻게 처리할지 명시한다.",
+      "checks": [
+        "401·403·404·409의 용도를 구분한다.",
+        "CORS와 서버의 인증·인가를 구분한다."
+      ],
+      "sources": [
+        {
+          "title": "MDN HTTP",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP"
+        },
+        {
+          "title": "HTTP Semantics",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110"
+        }
+      ],
+      "optional": false
+    },
+    {
+      "id": "database",
+      "title": "SQL과 데이터베이스",
+      "area": "백엔드 기초",
+      "level": "기초 → 중급",
+      "summary": "ORM을 쓰기 전에 저장 구조와 쿼리의 비용을 이해합니다.",
+      "goal": "정합성과 조회 요구사항에 맞는 스키마를 설계한다.",
+      "prerequisites": [
+        "getting-started"
+      ],
+      "chapters": [
+        {
+          "id": "relational-model",
+          "title": "관계형 모델과 제약조건",
+          "topics": [
+            "테이블·행·키·관계",
+            "PK·FK·UNIQUE·CHECK·NOT NULL",
+            "정규화와 중복 데이터",
+            "금액·시간·식별자 타입"
+          ]
+        },
+        {
+          "id": "sql-basics",
+          "title": "SQL로 데이터 다루기",
+          "topics": [
+            "SELECT·INSERT·UPDATE·DELETE",
+            "WHERE·ORDER BY·LIMIT",
+            "NULL과 3값 논리",
+            "바인딩과 SQL Injection 방지"
+          ]
+        },
+        {
+          "id": "joins",
+          "title": "관계 조회와 집계",
+          "topics": [
+            "INNER·LEFT JOIN",
+            "GROUP BY·HAVING",
+            "서브쿼리·EXISTS",
+            "윈도 함수와 페이지네이션"
+          ]
+        },
+        {
+          "id": "indexes",
+          "title": "인덱스와 실행 계획",
+          "topics": [
+            "B-tree 인덱스 개념",
+            "복합 인덱스·선두 컬럼",
+            "선택도와 쓰기 비용",
+            "EXPLAIN으로 추측 확인"
+          ]
+        },
+        {
+          "id": "db-transactions",
+          "title": "트랜잭션과 격리",
+          "topics": [
+            "ACID와 커밋·롤백",
+            "격리 수준·읽기 이상 현상",
+            "MVCC와 DB별 동작 차이",
+            "락·교착 상태·재시도"
+          ]
+        },
+        {
+          "id": "connections",
+          "title": "연결과 스키마 운영",
+          "topics": [
+            "커넥션 풀과 트랜잭션 연결",
+            "Flyway 마이그레이션",
+            "개발·테스트 데이터 관리",
+            "호환 가능한 스키마 변경"
+          ]
+        },
+        {
+          "id": "schema-lab",
+          "title": "주문 스키마 실습",
+          "topics": [
+            "회원·상품·주문·주문 항목",
+            "재고 차감과 조건부 UPDATE",
+            "중복 주문을 막는 제약조건",
+            "조회 요구사항과 인덱스 검증"
+          ]
+        }
+      ],
+      "lab": "PostgreSQL에 주문 스키마와 마이그레이션을 작성한다. 동시 재고 차감과 인덱스 전후의 실행 계획을 확인한다.",
+      "checks": [
+        "코드 검증과 DB 제약조건의 역할을 구분한다.",
+        "격리 수준의 의미를 사용 DB의 동작으로 검증한다."
+      ],
+      "sources": [
+        {
+          "title": "PostgreSQL 튜토리얼",
+          "url": "https://www.postgresql.org/docs/current/tutorial.html"
+        },
+        {
+          "title": "PostgreSQL 동시성",
+          "url": "https://www.postgresql.org/docs/current/mvcc.html"
+        }
+      ],
+      "optional": false
+    },
+    {
+      "id": "spring-core",
+      "title": "Spring의 핵심 원리",
+      "area": "Spring",
+      "level": "중급",
+      "summary": "컨테이너가 객체를 만들고 연결하고 감싸는 과정을 배웁니다.",
+      "goal": "Bean과 프록시의 동작을 코드로 설명한다.",
+      "prerequisites": [
+        "jvm"
+      ],
+      "chapters": [
+        {
+          "id": "ioc-di",
+          "title": "IoC와 의존성 주입",
+          "topics": [
+            "직접 조립과 컨테이너 조립 비교",
+            "생성자 주입과 테스트 용이성",
+            "의존 관계와 책임 분리",
+            "ApplicationContext의 역할"
+          ]
+        },
+        {
+          "id": "bean-registration",
+          "title": "Bean 등록과 탐색",
+          "topics": [
+            "@Component와 스테레오타입",
+            "@Configuration·@Bean",
+            "컴포넌트 스캔 범위",
+            "@Qualifier·@Primary와 후보 선택"
+          ]
+        },
+        {
+          "id": "bean-lifecycle",
+          "title": "Bean 생명주기와 Scope",
+          "topics": [
+            "등록·생성·주입·초기화·종료",
+            "singleton·prototype·request·session",
+            "공유 상태와 스레드 안전성",
+            "ObjectProvider와 scoped proxy 개념"
+          ]
+        },
+        {
+          "id": "configuration",
+          "title": "컨테이너 설정과 확장",
+          "topics": [
+            "Environment·PropertySource",
+            "@Profile·@Conditional 기초",
+            "BeanFactoryPostProcessor·BeanPostProcessor",
+            "순환 의존성과 설계 개선"
+          ]
+        },
+        {
+          "id": "aop",
+          "title": "AOP와 프록시",
+          "topics": [
+            "횡단 관심사·Advice·Pointcut",
+            "JDK 프록시·클래스 기반 프록시",
+            "메서드 호출과 self-invocation",
+            "프록시로 로깅·측정 구현"
+          ]
+        },
+        {
+          "id": "kotlin-spring",
+          "title": "Kotlin과 Spring의 만남",
+          "topics": [
+            "final 기본값과 kotlin-spring",
+            "생성자 주입과 프로퍼티",
+            "애너테이션 적용 위치",
+            "Java·Kotlin Bean 혼합"
+          ]
+        },
+        {
+          "id": "container-internals",
+          "title": "컨테이너 내부 따라가기",
+          "topics": [
+            "refresh의 큰 흐름",
+            "Bean 정의와 인스턴스 구분",
+            "자동 주입 실패 로그 읽기",
+            "작은 DI 컨테이너 직접 구현"
+          ]
+        }
+      ],
+      "lab": "주문 서비스의 객체 조립을 Spring으로 옮긴다. Bean Scope와 프록시 내부 호출을 로그·테스트로 비교한다.",
+      "checks": [
+        "싱글톤 Bean이 자동으로 스레드 안전해지지 않음을 설명한다.",
+        "어떤 호출이 프록시를 통과하는지 예측한다."
+      ],
+      "sources": [
+        {
+          "title": "Spring IoC",
+          "url": "https://docs.spring.io/spring-framework/reference/core/beans.html"
+        },
+        {
+          "title": "Spring AOP",
+          "url": "https://docs.spring.io/spring-framework/reference/core/aop/proxying.html"
+        }
+      ],
+      "optional": false
+    },
+    {
+      "id": "spring-boot",
+      "title": "Spring Boot와 애플리케이션 구성",
+      "area": "Spring",
+      "level": "중급",
+      "summary": "자동 구성과 실행 환경을 이해하고 재현 가능한 앱을 만듭니다.",
+      "goal": "자동 구성의 근거와 설정값의 출처를 찾는다.",
+      "prerequisites": [
+        "spring-core",
+        "getting-started"
+      ],
+      "chapters": [
+        {
+          "id": "boot-start",
+          "title": "애플리케이션 시작 과정",
+          "topics": [
+            "SpringApplication과 실행 흐름",
+            "@SpringBootApplication의 구성",
+            "내장 서버와 실행 가능한 JAR",
+            "Spring Framework와 Boot의 역할"
+          ]
+        },
+        {
+          "id": "starters",
+          "title": "Starter와 자동 구성",
+          "topics": [
+            "Starter·의존성 관리·BOM",
+            "조건부 자동 구성",
+            "사용자 Bean과 자동 구성의 관계",
+            "조건 평가 보고서 읽기"
+          ]
+        },
+        {
+          "id": "external-config",
+          "title": "외부 설정과 프로필",
+          "topics": [
+            "properties·YAML과 설정 우선순위",
+            "환경 변수·실행 인자",
+            "@ConfigurationProperties와 검증",
+            "비밀값 분리와 프로필 사용"
+          ]
+        },
+        {
+          "id": "boot-lifecycle",
+          "title": "시작과 종료",
+          "topics": [
+            "ApplicationRunner·CommandLineRunner",
+            "시작 실패와 진단 정보",
+            "graceful shutdown",
+            "외부 자원 초기화와 해제"
+          ]
+        },
+        {
+          "id": "boot-dependencies",
+          "title": "버전과 빌드 관리",
+          "topics": [
+            "Java Toolchain·Kotlin JVM target",
+            "Boot 플러그인과 의존성 버전",
+            "Boot 3·4 문서의 차이를 읽는 법",
+            "Jackson·테스트 모듈 변경 확인"
+          ]
+        },
+        {
+          "id": "boot-lab",
+          "title": "설정 가능한 주문 앱",
+          "topics": [
+            "개발·테스트 환경 분리",
+            "누락된 설정을 시작 시 검출",
+            "실행 JAR 만들기",
+            "실행 가이드와 예제 설정 작성"
+          ]
+        }
+      ],
+      "lab": "주문 앱에 타입이 있는 설정을 적용하고 로컬·테스트 프로필을 구성한다. JAR로 실행하고 정상 종료를 확인한다.",
+      "checks": [
+        "자동 구성된 Bean이 생긴 이유를 찾는다.",
+        "설정과 비밀 정보를 코드에서 분리한다."
+      ],
+      "sources": [
+        {
+          "title": "Spring Boot Reference",
+          "url": "https://docs.spring.io/spring-boot/reference/index.html"
+        },
+        {
+          "title": "Boot 4 마이그레이션",
+          "url": "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Migration-Guide"
+        }
+      ],
+      "optional": false
+    },
+    {
+      "id": "spring-mvc",
+      "title": "Spring MVC와 API 구현",
+      "area": "Spring",
+      "level": "중급",
+      "summary": "요청 하나가 들어와 응답으로 나가기까지의 경로를 구현합니다.",
+      "goal": "검증과 오류 처리가 일관된 주문 API를 만든다.",
+      "prerequisites": [
+        "spring-boot",
+        "web"
+      ],
+      "chapters": [
+        {
+          "id": "request-flow",
+          "title": "요청 처리의 전체 흐름",
+          "topics": [
+            "Servlet Container·Filter",
+            "DispatcherServlet·HandlerMapping·HandlerAdapter",
+            "ArgumentResolver·MessageConverter",
+            "Interceptor와 예외 처리 위치"
+          ]
+        },
+        {
+          "id": "controllers",
+          "title": "Controller와 입력",
+          "topics": [
+            "라우팅·경로·쿼리·헤더",
+            "@RequestBody와 바인딩",
+            "DTO와 도메인 모델 분리",
+            "Java record·Kotlin data class 비교"
+          ]
+        },
+        {
+          "id": "validation",
+          "title": "검증과 변환",
+          "topics": [
+            "Bean Validation 제약조건",
+            "@Valid·@Validated의 적용 맥락",
+            "Kotlin @field:·@get: 타깃",
+            "입력 검증과 비즈니스 규칙"
+          ]
+        },
+        {
+          "id": "errors",
+          "title": "예외와 오류 응답",
+          "topics": [
+            "@ExceptionHandler·@RestControllerAdvice",
+            "ProblemDetail와 응답 계약",
+            "도메인 예외 매핑",
+            "민감한 정보와 내부 오류 로그"
+          ]
+        },
+        {
+          "id": "serialization",
+          "title": "직렬화와 응답",
+          "topics": [
+            "Jackson과 JSON 모델",
+            "날짜·enum·null 처리",
+            "상태 코드·헤더·ResponseEntity",
+            "엔티티 직접 반환의 문제"
+          ]
+        },
+        {
+          "id": "web-features",
+          "title": "파일과 비동기 응답",
+          "topics": [
+            "Multipart 업로드와 크기 제한",
+            "다운로드와 자원 해제",
+            "SSE·비동기 MVC 개념",
+            "외부 HTTP 호출과 타임아웃"
+          ]
+        },
+        {
+          "id": "mvc-contract",
+          "title": "API 문서와 계약 검증",
+          "topics": [
+            "OpenAPI와 REST Docs 선택",
+            "페이지네이션과 오류 계약",
+            "MockMvc로 요청 검증",
+            "필터·인터셉터 로그로 흐름 추적"
+          ]
+        }
+      ],
+      "lab": "주문 API를 메모리 저장소로 구현한다. 잘못된 입력·없는 상품·중복 요청의 응답을 테스트한다.",
+      "checks": [
+        "Filter와 Interceptor의 실행 위치를 구분한다.",
+        "Java·Kotlin DTO에서 검증이 실제 동작하는지 확인한다."
+      ],
+      "sources": [
+        {
+          "title": "Spring MVC",
+          "url": "https://docs.spring.io/spring-framework/reference/web/webmvc.html"
+        },
+        {
+          "title": "Jakarta Bean Validation",
+          "url": "https://jakarta.ee/specifications/bean-validation/"
+        }
+      ],
+      "optional": false
+    },
+    {
+      "id": "persistence",
+      "title": "JPA와 트랜잭션",
+      "area": "데이터",
+      "level": "중급 → 심화",
+      "summary": "객체 변경이 SQL과 트랜잭션으로 이어지는 과정을 이해합니다.",
+      "goal": "정합성과 쿼리 성능을 검증하는 영속 계층을 만든다.",
+      "prerequisites": [
+        "spring-mvc",
+        "database"
+      ],
+      "chapters": [
+        {
+          "id": "jdbc-jpa",
+          "title": "JDBC에서 JPA까지",
+          "topics": [
+            "DataSource·JdbcTemplate",
+            "JPA·Hibernate·Spring Data JPA의 관계",
+            "EntityManager·Repository",
+            "ORM 선택의 비용과 이점"
+          ]
+        },
+        {
+          "id": "entity-mapping",
+          "title": "엔티티와 매핑",
+          "topics": [
+            "식별자·생성 전략·컬럼",
+            "연관관계 주인과 단방향·양방향",
+            "값 타입·임베디드 타입",
+            "Kotlin 엔티티의 생성자·프록시·동등성"
+          ]
+        },
+        {
+          "id": "persistence-context",
+          "title": "영속성 컨텍스트",
+          "topics": [
+            "엔티티 상태와 1차 캐시",
+            "변경 감지·쓰기 지연",
+            "flush와 commit",
+            "persist·merge·save의 차이"
+          ]
+        },
+        {
+          "id": "queries",
+          "title": "조회와 페이지네이션",
+          "topics": [
+            "쿼리 메서드·JPQL·Projection",
+            "fetch join·EntityGraph",
+            "페이징·정렬·count 쿼리",
+            "복잡한 조회와 SQL 기반 접근"
+          ]
+        },
+        {
+          "id": "fetching",
+          "title": "지연 로딩과 N+1",
+          "topics": [
+            "프록시와 로딩 시점",
+            "N+1 재현과 SQL 개수 확인",
+            "fetch join과 컬렉션 페이징",
+            "OSIV와 트랜잭션 경계"
+          ]
+        },
+        {
+          "id": "transaction-boundary",
+          "title": "트랜잭션 경계와 롤백",
+          "topics": [
+            "@Transactional과 프록시",
+            "기본 롤백 규칙과 명시적 설정",
+            "readOnly와 실제 쓰기 제어 구분",
+            "내부 호출·예외 포착·비동기 경계"
+          ]
+        },
+        {
+          "id": "propagation",
+          "title": "전파와 격리",
+          "topics": [
+            "REQUIRED·REQUIRES_NEW",
+            "논리 트랜잭션·물리 트랜잭션",
+            "rollback-only·UnexpectedRollbackException",
+            "DB 격리·커넥션 풀과 전파의 관계"
+          ]
+        },
+        {
+          "id": "locking",
+          "title": "동시 주문과 락",
+          "topics": [
+            "낙관적 락·@Version",
+            "비관적 락·조건부 갱신",
+            "교착 상태와 재시도 범위",
+            "멱등성과 유니크 제약조건"
+          ]
+        },
+        {
+          "id": "data-testing",
+          "title": "영속 계층 검증",
+          "topics": [
+            "실제 DB 통합 테스트",
+            "테스트 트랜잭션의 함정",
+            "마이그레이션·쿼리 검증",
+            "엔티티·DTO·도메인 경계 리뷰"
+          ]
+        }
+      ],
+      "lab": "주문 저장소를 PostgreSQL로 교체한다. 주문 실패 시 재고 롤백, N+1 개선, 동시 주문의 초과 판매 방지를 검증한다.",
+      "checks": [
+        "flush와 commit을 구분하고 SQL 로그로 확인한다.",
+        "내부 호출·전파·롤백 규칙을 실패 테스트로 설명한다."
+      ],
+      "sources": [
+        {
+          "title": "Spring Data JPA",
+          "url": "https://docs.spring.io/spring-data/jpa/reference/"
+        },
+        {
+          "title": "Spring 트랜잭션",
+          "url": "https://docs.spring.io/spring-framework/reference/data-access/transaction.html"
+        },
+        {
+          "title": "Hibernate ORM",
+          "url": "https://hibernate.org/orm/documentation/"
+        }
+      ],
+      "optional": false
+    },
+    {
+      "id": "security",
+      "title": "Spring Security와 접근 제어",
+      "area": "보안",
+      "level": "중급",
+      "summary": "인증 방식의 선택부터 리소스 소유권 검증까지 연결합니다.",
+      "goal": "사용자와 권한에 따라 주문 접근을 제어한다.",
+      "prerequisites": [
+        "spring-mvc",
+        "persistence"
+      ],
+      "chapters": [
+        {
+          "id": "security-chain",
+          "title": "Security Filter Chain",
+          "topics": [
+            "DelegatingFilterProxy·FilterChainProxy",
+            "SecurityFilterChain과 요청 매칭",
+            "Authentication·SecurityContext",
+            "인증 실패·접근 거부 처리"
+          ]
+        },
+        {
+          "id": "session-auth",
+          "title": "세션 기반 인증",
+          "topics": [
+            "로그인·로그아웃·세션 수명",
+            "PasswordEncoder와 비밀번호 해시",
+            "쿠키 속성과 세션 고정 보호",
+            "인증 정보를 로그에 남기지 않기"
+          ]
+        },
+        {
+          "id": "authorization",
+          "title": "인가와 소유권",
+          "topics": [
+            "요청 기반·메서드 기반 인가",
+            "역할·권한·리소스 소유권",
+            "@PreAuthorize와 프록시",
+            "IDOR와 권한 회귀 테스트"
+          ]
+        },
+        {
+          "id": "tokens",
+          "title": "JWT와 토큰 수명",
+          "topics": [
+            "서명·검증·만료·클레임",
+            "Access·Refresh 토큰과 폐기 전략",
+            "저장 위치와 위협 모델",
+            "세션과 토큰 방식의 선택 기준"
+          ]
+        },
+        {
+          "id": "oauth",
+          "title": "OAuth2와 OIDC",
+          "topics": [
+            "클라이언트·리소스 서버·인가 서버",
+            "Authorization Code와 PKCE",
+            "로그인과 API 접근 권한의 차이",
+            "Spring OAuth2 Client·Resource Server"
+          ]
+        },
+        {
+          "id": "security-tests",
+          "title": "웹 보안과 검증",
+          "topics": [
+            "CORS·CSRF·SameSite 적용",
+            "401·403과 예외 응답",
+            "익명·사용자·관리자 테스트",
+            "보안 설정과 운영 환경 분리"
+          ]
+        }
+      ],
+      "lab": "세션 기반 로그인을 우선 구현하고 주문 소유권을 검증한다. 토큰 기반 대안의 장단점을 기록하고 접근 제어 테스트를 작성한다.",
+      "checks": [
+        "다른 사용자의 주문 조회·취소를 차단한다.",
+        "인증 방식에 맞는 CSRF 정책을 설명한다."
+      ],
+      "sources": [
+        {
+          "title": "Spring Security",
+          "url": "https://docs.spring.io/spring-security/reference/"
+        },
+        {
+          "title": "OAuth2 Resource Server",
+          "url": "https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/index.html"
+        }
+      ],
+      "optional": false
+    },
+    {
+      "id": "testing",
+      "title": "테스트 전략과 품질",
+      "area": "검증",
+      "level": "중급",
+      "summary": "각 단계에서 작성한 테스트를 모아 빠르고 신뢰할 수 있는 검증 체계를 만듭니다.",
+      "goal": "실패 원인을 구분할 수 있는 테스트 구성을 만든다.",
+      "prerequisites": [
+        "spring-mvc",
+        "persistence"
+      ],
+      "chapters": [
+        {
+          "id": "test-design",
+          "title": "테스트 설계와 경계",
+          "topics": [
+            "행동 중심 검증",
+            "정상·경계·오류 시나리오",
+            "단위·슬라이스·통합·E2E",
+            "결정적인 시간·랜덤·외부 의존성"
+          ]
+        },
+        {
+          "id": "junit",
+          "title": "JUnit Jupiter와 단위 테스트",
+          "topics": [
+            "생명주기·파라미터화 테스트",
+            "AssertJ·예외 검증",
+            "Java·Kotlin 테스트 가독성",
+            "테스트 데이터 빌더"
+          ]
+        },
+        {
+          "id": "doubles",
+          "title": "테스트 대역",
+          "topics": [
+            "Dummy·Stub·Fake·Spy·Mock",
+            "Mockito·MockK의 선택",
+            "상호작용 검증의 범위",
+            "도메인 규칙을 과도하게 모킹하지 않기"
+          ]
+        },
+        {
+          "id": "spring-tests",
+          "title": "Spring 테스트 계층",
+          "topics": [
+            "@WebMvcTest·@DataJpaTest",
+            "@SpringBootTest와 실제 HTTP",
+            "테스트 컨텍스트 캐시",
+            "트랜잭션 롤백과 서버 스레드 경계"
+          ]
+        },
+        {
+          "id": "testcontainers",
+          "title": "실제 의존성과 통합 테스트",
+          "topics": [
+            "PostgreSQL Testcontainers",
+            "@ServiceConnection과 수명 관리",
+            "마이그레이션·락·제약조건 검증",
+            "외부 HTTP 스텁과 실패 재현"
+          ]
+        },
+        {
+          "id": "ci-quality",
+          "title": "CI와 회귀 방지",
+          "topics": [
+            "Gradle 검증 파이프라인",
+            "병렬 실행·격리·flaky test",
+            "커버리지의 역할과 한계",
+            "실패 로그·테스트 리포트 읽기"
+          ]
+        }
+      ],
+      "lab": "주문 앱의 단위·MVC·DB·보안 테스트를 묶어 CI에서 실행한다. 의도적으로 결함을 넣어 테스트가 검출하는지 확인한다.",
+      "checks": [
+        "테스트를 위해 전체 컨텍스트가 필요한지 판단한다.",
+        "DB 제약조건과 동시성 실패가 CI에서도 재현된다."
+      ],
+      "sources": [
+        {
+          "title": "Spring Boot 테스트",
+          "url": "https://docs.spring.io/spring-boot/reference/testing/index.html"
+        },
+        {
+          "title": "Testcontainers 연동",
+          "url": "https://docs.spring.io/spring-boot/reference/testing/testcontainers.html"
+        }
+      ],
+      "optional": false
+    },
+    {
+      "id": "concurrency",
+      "title": "동시성 그리고 성능",
+      "area": "JVM",
+      "level": "심화",
+      "summary": "스레드와 외부 자원의 한계를 측정하고 처리량과 응답 시간을 개선합니다.",
+      "goal": "병목의 근거를 수집한 뒤 개선 효과를 검증한다.",
+      "prerequisites": [
+        "jvm",
+        "persistence",
+        "testing"
+      ],
+      "chapters": [
+        {
+          "id": "thread-safety",
+          "title": "공유 상태와 동기화",
+          "topics": [
+            "원자성·가시성·순서 보장",
+            "Lock·Atomic·동시성 컬렉션",
+            "교착·기아·경쟁 상태",
+            "불변 객체와 상태 격리"
+          ]
+        },
+        {
+          "id": "executors",
+          "title": "실행기와 비동기 작업",
+          "topics": [
+            "ExecutorService·스레드 풀",
+            "큐·거부 정책·백프레셔",
+            "CompletableFuture·예외·타임아웃",
+            "@Async와 프록시·컨텍스트 전달"
+          ]
+        },
+        {
+          "id": "virtual-threads",
+          "title": "가상 스레드",
+          "topics": [
+            "플랫폼 스레드와 가상 스레드",
+            "블로킹 I/O와 CPU 작업",
+            "DB 풀·외부 시스템의 동시성 제한",
+            "JDK 버전에 따른 제약 확인"
+          ]
+        },
+        {
+          "id": "coroutine-basics",
+          "title": "Kotlin 코루틴 입문",
+          "topics": [
+            "suspend와 실제 중단 지점",
+            "CoroutineScope·Job·Dispatcher",
+            "구조적 동시성·취소·예외",
+            "블로킹 API·트랜잭션과의 경계"
+          ]
+        },
+        {
+          "id": "cache-basics",
+          "title": "캐시의 기본 전략",
+          "topics": [
+            "Cache Aside·TTL·무효화",
+            "로컬 캐시와 Redis",
+            "캐시 스탬피드·일관성",
+            "Spring Cache와 측정"
+          ]
+        },
+        {
+          "id": "profiling",
+          "title": "측정과 프로파일링",
+          "topics": [
+            "처리량·p50·p95·p99",
+            "JFR·스레드 덤프·GC 로그",
+            "커넥션 풀·SQL·외부 API 병목",
+            "부하 모델과 워밍업"
+          ]
+        },
+        {
+          "id": "performance-lab",
+          "title": "병목 개선 실습",
+          "topics": [
+            "기준 성능 측정",
+            "한 번에 하나의 가설 검증",
+            "부하 중 실패·타임아웃 관찰",
+            "개선 전후와 부작용 기록"
+          ]
+        }
+      ],
+      "lab": "상품 조회·주문 생성에 부하를 준다. SQL·풀·캐시 중 실제 병목 하나를 찾고 처리량과 지연 시간을 비교한다.",
+      "checks": [
+        "비동기·가상 스레드·코루틴이 같은 개념이 아님을 설명한다.",
+        "캐시나 스레드 수를 바꾸기 전에 기준 지표를 수집한다."
+      ],
+      "sources": [
+        {
+          "title": "Java 가상 스레드",
+          "url": "https://dev.java/learn/new-features/virtual-threads/"
+        },
+        {
+          "title": "Kotlin 코루틴",
+          "url": "https://kotlinlang.org/docs/coroutines-overview.html"
+        },
+        {
+          "title": "Spring 작업 실행",
+          "url": "https://docs.spring.io/spring-boot/reference/features/task-execution-and-scheduling.html"
+        }
+      ],
+      "optional": false
+    },
+    {
+      "id": "operations",
+      "title": "배포와 운영",
+      "area": "운영",
+      "level": "실전",
+      "summary": "빌드한 애플리케이션을 배포하고 실패를 관찰하고 복구합니다.",
+      "goal": "서비스의 배포·관찰·복구 절차를 실행한다.",
+      "prerequisites": [
+        "spring-boot",
+        "security",
+        "testing"
+      ],
+      "chapters": [
+        {
+          "id": "packaging",
+          "title": "패키징과 컨테이너",
+          "topics": [
+            "JAR·bootJar·WAR",
+            "Dockerfile·빌드팩·이미지 계층",
+            "컨테이너 사용자·리소스 제한",
+            "Docker Compose로 개발 환경 구성"
+          ]
+        },
+        {
+          "id": "delivery",
+          "title": "CI와 배포 흐름",
+          "topics": [
+            "테스트·이미지 빌드·배포 분리",
+            "환경 변수·비밀 관리",
+            "배포 버전과 재현성",
+            "롤백과 스키마 호환성"
+          ]
+        },
+        {
+          "id": "health",
+          "title": "상태 확인과 종료",
+          "topics": [
+            "Actuator 노출 범위",
+            "liveness·readiness의 역할",
+            "graceful shutdown과 진행 중 요청",
+            "애플리케이션·DB 연결 상태"
+          ]
+        },
+        {
+          "id": "observability",
+          "title": "로그와 메트릭과 추적",
+          "topics": [
+            "구조화 로그·상관관계 ID",
+            "Micrometer·메트릭 태그",
+            "분산 추적과 컨텍스트 전파",
+            "개인 정보·시크릿과 로그"
+          ]
+        },
+        {
+          "id": "resilience",
+          "title": "외부 의존성의 실패",
+          "topics": [
+            "연결·응답 타임아웃",
+            "재시도 예산·서킷 브레이커",
+            "rate limit·과부하 제어",
+            "DB·외부 API 장애 시나리오"
+          ]
+        },
+        {
+          "id": "incident-response",
+          "title": "장애 대응과 데이터 보호",
+          "topics": [
+            "알림·SLO·대시보드 기초",
+            "배포 직후 오류율 증가 조사",
+            "백업·복원과 마이그레이션 실패",
+            "사후 분석과 재발 방지"
+          ]
+        },
+        {
+          "id": "deployment-lab",
+          "title": "운영 가능한 주문 서비스",
+          "topics": [
+            "테스트를 통과한 이미지 배포",
+            "정상 종료·재시작·복원 검증",
+            "부하 중 배포 관찰",
+            "실행 절차와 장애 대응 문서"
+          ]
+        }
+      ],
+      "lab": "주문 앱과 DB를 컨테이너로 실행한다. 상태·로그·메트릭을 확인하고 의존성 장애와 롤백을 연습한다.",
+      "checks": [
+        "health 응답만으로 모든 요청의 성공을 판단하지 않는다.",
+        "배포·롤백·복원 절차를 다른 사람이 재현할 수 있다."
+      ],
+      "sources": [
+        {
+          "title": "Spring Boot 운영 기능",
+          "url": "https://docs.spring.io/spring-boot/reference/actuator/index.html"
+        },
+        {
+          "title": "Docker 시작하기",
+          "url": "https://docs.docker.com/get-started/"
+        }
+      ],
+      "optional": false
+    },
+    {
+      "id": "architecture",
+      "title": "설계와 종합 프로젝트",
+      "area": "설계",
+      "level": "실전",
+      "summary": "완성한 기능의 경계를 정리하고 선택한 설계의 근거를 설명합니다.",
+      "goal": "주문 서비스의 설계·검증·운영 근거를 제시한다.",
+      "prerequisites": [
+        "persistence",
+        "security",
+        "testing",
+        "operations"
+      ],
+      "chapters": [
+        {
+          "id": "boundaries",
+          "title": "패키지와 모듈 경계",
+          "topics": [
+            "계층별·기능별 패키지",
+            "도메인·애플리케이션·인프라 책임",
+            "헥사고날 구조의 비용과 이점",
+            "순환 의존성과 모듈 테스트"
+          ]
+        },
+        {
+          "id": "domain-design",
+          "title": "도메인 모델과 변경",
+          "topics": [
+            "엔티티·값 객체·애그리거트",
+            "불변식과 트랜잭션 경계",
+            "외부 서비스와 포트·어댑터",
+            "과도한 추상화 피하기"
+          ]
+        },
+        {
+          "id": "events",
+          "title": "이벤트와 일관성",
+          "topics": [
+            "도메인 이벤트와 처리 시점",
+            "@TransactionalEventListener",
+            "동기·비동기 후처리 선택",
+            "Outbox가 필요한 실패 시나리오"
+          ]
+        },
+        {
+          "id": "source-reading",
+          "title": "프레임워크 소스 읽기",
+          "topics": [
+            "문제 재현에서 시작하기",
+            "Bean 생성·MVC 호출 경로",
+            "트랜잭션 인터셉터 추적",
+            "버전을 고정한 소스 링크 기록"
+          ]
+        },
+        {
+          "id": "interview",
+          "title": "개념을 설명하는 연습",
+          "topics": [
+            "Java·Kotlin·JVM 비교 질문",
+            "DI·프록시·MVC 질문",
+            "JPA·트랜잭션·동시성 질문",
+            "선택 근거·반례·측정 결과로 답변"
+          ]
+        },
+        {
+          "id": "implementation-interview",
+          "title": "직접 구현하는 연습",
+          "topics": [
+            "작은 DI 컨테이너",
+            "동시성 안전한 재고 차감",
+            "멱등성 키 처리",
+            "N+1과 프록시 내부 호출 재현"
+          ]
+        },
+        {
+          "id": "capstone",
+          "title": "종합 프로젝트 리뷰",
+          "topics": [
+            "회원·상품·주문·재고의 흐름",
+            "요구사항과 테스트 추적",
+            "ADR·ERD·API·운영 가이드",
+            "실패 시나리오 데모와 개선 계획"
+          ]
+        }
+      ],
+      "lab": "주문 서비스의 코드·테스트·배포·운영 문서를 하나의 결과물로 정리한다. Java와 Kotlin의 구현 차이 및 설계 결정을 설명한다.",
+      "checks": [
+        "정상 동작뿐 아니라 동시 주문·중복 요청·장애 상황을 시연한다.",
+        "기술 선택을 요구사항·비용·검증 결과로 설명한다."
+      ],
+      "sources": [
+        {
+          "title": "Spring 코드 구조",
+          "url": "https://docs.spring.io/spring-boot/reference/using/structuring-your-code.html"
+        },
+        {
+          "title": "Spring Modulith",
+          "url": "https://docs.spring.io/spring-modulith/reference/"
+        }
+      ],
+      "optional": false
+    },
+    {
+      "id": "advanced",
+      "title": "선택 심화 과정",
+      "area": "확장",
+      "level": "선택",
+      "summary": "기본 서비스를 완성한 뒤 해결할 문제에 맞춰 확장합니다.",
+      "goal": "필요한 기술을 골라 작은 실험으로 적용 여부를 판단한다.",
+      "prerequisites": [
+        "architecture"
+      ],
+      "chapters": [
+        {
+          "id": "reactive",
+          "title": "WebFlux와 Reactor",
+          "topics": [
+            "Reactive Streams·백프레셔",
+            "Mono·Flux와 연산자",
+            "이벤트 루프·블로킹 경계",
+            "R2DBC·코루틴 연동과 선택 기준"
+          ]
+        },
+        {
+          "id": "messaging",
+          "title": "메시징과 이벤트 처리",
+          "topics": [
+            "Kafka·RabbitMQ의 모델",
+            "순서·중복·전달 보장",
+            "재처리·DLQ·멱등 소비자",
+            "Outbox·CDC와 일관성"
+          ]
+        },
+        {
+          "id": "batch",
+          "title": "Spring Batch",
+          "topics": [
+            "Job·Step·Chunk",
+            "트랜잭션과 재시작",
+            "실패·skip·retry",
+            "대량 데이터와 파티셔닝"
+          ]
+        },
+        {
+          "id": "distributed",
+          "title": "분산 시스템과 서비스 분리",
+          "topics": [
+            "모듈형 모놀리스에서 분리하기",
+            "네트워크 실패·시간·일관성",
+            "Saga·분산 추적",
+            "분산 락의 전제와 대안"
+          ]
+        },
+        {
+          "id": "native",
+          "title": "AOT와 Native Image",
+          "topics": [
+            "JIT·AOT와 시작 시간",
+            "리플렉션·리소스 힌트",
+            "빌드 비용과 런타임 제약",
+            "JVM 배포와 성능 비교"
+          ]
+        },
+        {
+          "id": "specialized",
+          "title": "요구사항별 확장",
+          "topics": [
+            "검색 엔진·검색 인덱스 일관성",
+            "WebSocket·SSE 선택",
+            "Kubernetes의 배포·자원 모델",
+            "멀티 테넌시와 데이터 격리"
+          ]
+        }
+      ],
+      "lab": "실제 요구사항 하나를 정해 선택 기술의 도입 전후를 비교하는 작은 실험과 ADR을 작성한다.",
+      "checks": [
+        "기본 과정의 완료율과 선택 심화의 진행률을 별도로 관리한다.",
+        "기술을 추가해야 하는 이유와 운영 비용을 설명한다."
+      ],
+      "sources": [
+        {
+          "title": "Spring WebFlux",
+          "url": "https://docs.spring.io/spring-framework/reference/web/webflux.html"
+        },
+        {
+          "title": "Spring Batch",
+          "url": "https://docs.spring.io/spring-batch/reference/"
+        },
+        {
+          "title": "Spring for Apache Kafka",
+          "url": "https://docs.spring.io/spring-kafka/reference/"
+        }
+      ],
+      "optional": true
+    }
+  ]
+}
