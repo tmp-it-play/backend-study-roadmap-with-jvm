@@ -55,3 +55,6 @@ overrides:
   codex/skills/write-pr: false
   nextjs/fsd/dependency-check: true
   nextjs/fsd/steiger-config: true
+
+language: ko
+pr_label: false
