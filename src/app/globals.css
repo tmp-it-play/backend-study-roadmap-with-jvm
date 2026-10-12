@@ -1,6 +1,6 @@
 :root {
   --sky: #5ec2ec; --sky-light: #d1f0fc; --sun: #ffd43b;
-  --sign: #0e6a33; --sign-dark: #094d24; --grass: #6da43b; --grass-light: #83b650;
+  --sign: #0e6a33; --sign-dark: #094d24; --grass: #6da43b;
   --city: #1f3449; --city-2: #456279; --window: #9bb9c5;
   --ink: #233b2b; --sub: #536658; --line: #d8e4cd; --paper: #fff; --page: #f2f7eb;
   --orange: #ba510c; --head: 60px; --side: 248px;
@@ -116,7 +116,6 @@ progress::-moz-progress-bar { background: var(--sun); }
 .track { --road-width: 40px; --road-radius: 115px; max-width: 1050px; padding: 0 30px; margin: 58px auto 0; }
 .lap { position: relative; border: var(--road-width) solid #fff; margin-top: calc(-1 * var(--road-width)); background: var(--grass); }
 .lap:first-child { margin-top: 0; }
-.lap:nth-child(even) { background: var(--grass-light); }
 .lap.right { border-left: none; border-radius: 0 var(--road-radius) var(--road-radius) 0; padding: 40px 45px 33px 24px; }
 .lap.left { border-right: none; border-radius: var(--road-radius) 0 0 var(--road-radius); padding: 40px 24px 33px 45px; }
 .lap::before { content: ''; position: absolute; pointer-events: none; top: calc(-1 * var(--road-width) / 2 - 1px); bottom: calc(-1 * var(--road-width) / 2 - 1px); border: 2px dashed #afb7b5; }
