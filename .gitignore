@@ -11,3 +11,4 @@ out/
 examples/**/build/
 examples/**/.kotlin/
 public/downloads/*.zip
+/.claude/command.log
