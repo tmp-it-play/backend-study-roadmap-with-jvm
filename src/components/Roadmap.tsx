@@ -7,6 +7,7 @@ import { stages, coreStages, coreKeys, notes, totalChapters, chapterKey, lessonH
 import { useLearning } from './LearningProvider';
 import { Skyline } from './Scenery';
 import ScrollCar from './ScrollCar';
+import SelectField from './SelectField';
 
 const areas = ['전체', ...new Set(stages.map((s) => s.area))];
 
@@ -55,7 +56,7 @@ export default function Roadmap() {
       <div className="roadmap-controls"><div className="search-field"><span aria-hidden="true">⌕</span><input ref={input} id="search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="개념이나 목차 검색 · 예: 트랜잭션, DSL" aria-label="로드맵 검색" /></div>
         <div className="view-toggle" role="group" aria-label="로드맵 보기 방식"><button aria-pressed={view === 'road'} onClick={() => setView('road')}>도로</button><button aria-pressed={view === 'list'} onClick={() => setView('list')}>목록</button></div>
       </div>
-      <div className="filter-row"><label htmlFor="area">학습 영역</label><select id="area" value={area} onChange={(e) => setArea(e.target.value)}>{areas.map((a) => <option key={a}>{a}</option>)}</select><span role="status">{filtered.length}개 구간{q && ` · 보충 지식 ${noteResults.length}개`}</span></div>
+      <div className="filter-row"><label htmlFor="area">학습 영역</label><SelectField id="area" label="학습 영역" value={area} onValueChange={setArea} options={areas.map((a) => ({ value: a, label: a }))} /><span role="status">{filtered.length}개 구간{q && ` · 보충 지식 ${noteResults.length}개`}</span></div>
     </div>
     {q && noteResults.length > 0 && <section className="note-results" aria-label="보충 지식 검색 결과"><h2>함께 찾은 보충 지식</h2><div>{noteResults.map((n) => <Link key={n.id} href={`/notes#${n.id}`}><CoffeeEmoji /> {n.title}</Link>)}</div></section>}
     {filtered.length ? <div ref={track} className={`track ${view === 'list' ? 'list-view' : ''}`}>

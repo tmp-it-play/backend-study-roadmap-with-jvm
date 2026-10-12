@@ -14,8 +14,8 @@
     "test:road": "node --experimental-strip-types --test scripts/road-path.test.mjs"
   },
   "dependencies": {
-    "@fontsource/do-hyeon": "^5.3.0",
-    "@fontsource/noto-sans-kr": "^5.3.1",
+    "@radix-ui/react-select": "^2.4.0",
+    "@sun-typeface/suit": "^2.0.5",
     "next": "16.4.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"

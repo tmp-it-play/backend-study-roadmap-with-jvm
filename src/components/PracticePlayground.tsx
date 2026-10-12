@@ -1,6 +1,7 @@
 'use client';
 import { ArrowIcon } from '@/components/Icons';
 import { useState } from 'react';
+import SelectField from './SelectField';
 import { beanTrace, mvcTrace, transactionTrace, queryTrace, newStock, stockStep, type Trace } from '@/lib/practice-models';
 
 function TracePlayer({trace}:{trace:Trace}) {
@@ -20,7 +21,7 @@ const experiments=[
 function Scenario({experiment}:{experiment:typeof experiments[number]}) {
   const [mode,setMode]=useState(experiment.options[0][0]);
   return <section className="experiment" id={experiment.id}><div className="experiment-heading"><h2>{experiment.title}</h2><a href={experiment.href}>본문 읽기 <ArrowIcon direction="up-right" /></a></div><p>{experiment.question}</p>
-    <label className="practice-field">실행 조건<select value={mode} onChange={e=>setMode(e.target.value)} aria-label={experiment.title+' 실행 조건'}>{experiment.options.map(([value,label])=><option value={value} key={value}>{label}</option>)}</select></label>
+    <label className="practice-field">실행 조건<SelectField value={mode} onValueChange={setMode} label={experiment.title+' 실행 조건'} options={experiment.options.map(([value,label])=>({value,label}))} /></label>
     <TracePlayer key={mode} trace={experiment.trace(mode)}/>
   </section>;
 }
@@ -28,7 +29,7 @@ function Queries() {
   const [count,setCount]=useState(3); const [fetch,setFetch]=useState(false);
   return <section className="experiment" id="queries"><div className="experiment-heading"><h2>04. 목록 조회와 N+1</h2><a href="/stages/persistence/fetching">본문 읽기 <ArrowIcon direction="up-right" /></a></div><p>서로 다른 상품을 주문한 목록입니다. 상품 이름을 모두 읽을 때 SQL은 몇 번 실행될까요?</p>
     <div className="practice-fields"><label className="practice-field">주문 수: {count}<input type="range" min={1} max={12} value={count} onChange={e=>setCount(Number(e.target.value))}/></label>
-    <label className="practice-field">조회 전략<select value={String(fetch)} onChange={e=>setFetch(e.target.value==='true')}><option value="false">지연 로딩</option><option value="true">fetch join</option></select></label></div>
+    <label className="practice-field">조회 전략<SelectField label="조회 전략" value={String(fetch)} onValueChange={value=>setFetch(value==='true')} options={[{value:'false',label:'지연 로딩'},{value:'true',label:'fetch join'}]} /></label></div>
     <TracePlayer key={count+String(fetch)} trace={queryTrace(count,fetch)}/>
   </section>;
 }
@@ -36,7 +37,7 @@ function Stock() {
   const [atomic,setAtomic]=useState(false); const [state,setState]=useState(newStock);
   return <section className="experiment" id="stock"><div className="experiment-heading"><h2>05. 마지막 재고 1개</h2><a href="/stages/concurrency/thread-safety">본문 읽기 <ArrowIcon direction="up-right" /></a></div>
     <p>{atomic ? 'A와 B 중 먼저 주문한 요청의 검사와 차감이 끝난 뒤 다음 요청이 실행됩니다. 순서를 바꿔 결과를 비교하세요.' : 'A와 B가 같은 상품을 주문합니다. A 읽기 → B 읽기 → A 쓰기 → B 쓰기 순서로 실행해 보세요.'}</p>
-    <label className="practice-field">차감 방식<select value={String(atomic)} onChange={e=>{setAtomic(e.target.value==='true');setState(newStock());}}><option value="false">읽고 나중에 쓰기</option><option value="true">조건 검사와 차감을 원자적으로</option></select></label>
+    <label className="practice-field">차감 방식<SelectField label="차감 방식" value={String(atomic)} onValueChange={value=>{setAtomic(value==='true');setState(newStock());}} options={[{value:'false',label:'읽고 나중에 쓰기'},{value:'true',label:'조건 검사와 차감을 원자적으로'}]} /></label>
     <div className="stock-board" aria-live="polite"><div><span>남은 재고</span><strong>{state.stock}</strong></div><div><span>성공한 주문</span><strong>{state.sold}</strong></div><div><span>판매할 수 있는 수량</span><strong>1</strong></div></div>
     <div className="practice-actions">{(['A','B'] as const).map(actor=><button key={actor} disabled={state.done.includes(actor)} onClick={()=>setState(s=>stockStep(s,actor,atomic))}>{actor} {atomic?'주문':state.reads[actor]===undefined?'읽기':'쓰기'}</button>)}<button onClick={()=>setState(newStock())}>재고 초기화</button></div>
     <ol className="trace-log" aria-live="polite">{state.log.map((line,i)=><li key={i}><span>{i+1}</span>{line}</li>)}</ol>
