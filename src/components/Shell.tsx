@@ -33,11 +33,12 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     <p className="nav-label">기본 과정</p>
     {stages.map((s) => {
       const done = s.chapters.filter((c) => completed.includes(chapterKey(s, c))).length;
-      return <Link key={s.id} href={stageHref(s)} className={`stage-nav ${s.optional ? 'optional-nav' : ''}`} aria-current={pathname === stageHref(s) ? 'page' : undefined}>
+      return <Link key={s.id} href={stageHref(s)} className={`stage-nav ${s.optional ? 'optional-nav' : ''}`} aria-current={pathname === stageHref(s) ? 'page' : pathname.startsWith(`${stageHref(s)}/`) ? 'location' : undefined}>
         <span className="nav-number">{s.optional ? '+' : numberOf(s)}</span><span>{s.title}</span>
         {done > 0 && <span className="nav-done" aria-label={`${done}개 완료`}>{done === s.chapters.length ? '✓' : done}</span>}
       </Link>;
     })}
+    <Link href="/practice" className="nav-notes" aria-current={pathname === '/practice' ? 'page' : undefined}>직접 해보는 실습 <span>↗</span></Link>
     <Link href="/notes" className="nav-notes" aria-current={pathname === '/notes' ? 'page' : undefined}>☕ 보충 지식 <span>{notes.length}</span></Link>
     <p className="nav-foot">Java와 Kotlin에서 출발해<br />Spring Boot 운영까지.</p>
   </>;

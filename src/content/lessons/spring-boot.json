@@ -1,0 +1,262 @@
+[
+  {
+    "id": "boot-start",
+    "goal": "Boot의 시작점과 Spring 컨테이너·웹 서버의 관계를 설명한다.",
+    "intro": "main 함수 하나로 서버가 실행되지만 내부에는 설정 읽기, Bean 구성, 웹 서버 시작 과정이 있습니다. 실패한 구간을 알면 로그에서 볼 지점을 좁힐 수 있습니다.",
+    "sections": [
+      "SpringApplication은 실행 환경을 준비하고 적절한 ApplicationContext를 생성·갱신합니다. 클래스패스와 설정에 따라 웹 애플리케이션 방식이 달라집니다. main이 호출됐다는 사실만으로 서버가 준비된 것은 아닙니다.",
+      "@SpringBootApplication은 구성 클래스, 자동 구성 활성화, 컴포넌트 스캔을 결합합니다. 시작 클래스의 패키지가 기본 탐색 범위에 영향을 줍니다. 엔티티·저장소의 탐색 범위도 함께 확인합니다.",
+      "내장 서버를 사용하면 앱 프로세스 안에서 서버를 실행하고 실행 가능한 JAR로 배포할 수 있습니다. 일반 JAR에 main 클래스가 있다고 Boot 로더와 의존성이 자동 포함되는 것은 아닙니다.",
+      "Spring Framework는 DI·MVC·트랜잭션 등의 기반을, Boot는 의존성 관리·자동 구성·실행·운영 편의를 제공합니다. Boot 설정을 이해하려면 적용되는 Spring 기능이 무엇인지 연결해서 읽습니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "@SpringBootApplication\npublic class OrdersApplication {\n    public static void main(String[] args) {\n        SpringApplication.run(OrdersApplication.class, args);\n    }\n}"
+      },
+      {
+        "label": "Kotlin",
+        "code": "@SpringBootApplication\nclass OrdersApplication\n\nfun main(args: Array<String>) {\n    runApplication<OrdersApplication>(*args)\n}"
+      }
+    ],
+    "explanation": "Boot 프로젝트의 시작 코드이며 각 언어에 맞는 Spring import가 필요합니다. Java와 Kotlin 시작점을 같은 실행 모듈에 동시에 넣으면 사용할 main을 명확히 정해야 합니다.",
+    "exercise": {
+      "steps": [
+        "빈 Boot 앱을 실행하고 컨텍스트 준비·포트 바인딩·시작 완료 로그를 구분한다.",
+        "이미 사용 중인 포트로 실행해 실패 원인이 Bean 오류와 다른지 확인한다."
+      ],
+      "expected": "실행 가능한 산출물과 시작 클래스가 하나로 명확히 정해져야 합니다."
+    },
+    "pitfalls": [
+      "시작 클래스를 최상위 기본 패키지에 놓으면 너무 넓은 범위를 탐색할 수 있습니다. 프로젝트의 루트 패키지를 정합니다."
+    ],
+    "quiz": [
+      {
+        "question": "Boot를 사용하면 Spring의 DI 원리를 몰라도 되나요?",
+        "answer": "자동 구성이 결국 Bean을 등록하고 연결하므로 후보 충돌·Scope·프록시 문제를 해결하려면 컨테이너 원리를 알아야 합니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.spring.io/spring-boot/reference/using/using-the-springbootapplication-annotation.html"
+      }
+    ]
+  },
+  {
+    "id": "starters",
+    "goal": "의존성 묶음과 조건부 Bean 등록을 구분한다.",
+    "intro": "Starter를 추가했는데 예상한 Bean이 없거나 직접 등록한 Bean 때문에 기본 설정이 사라질 수 있습니다. 클래스패스와 조건 평가를 함께 봅니다.",
+    "sections": [
+      "Starter는 특정 기능에 필요한 의존성 묶음을 제공합니다. BOM은 버전 조합을 관리합니다. 둘 다 실제 업무 로직을 생성하지 않으며 의존성이 존재한다고 모든 기능이 활성화되는 것은 아닙니다.",
+      "자동 구성은 클래스·설정값·기존 Bean 등의 조건으로 등록 여부를 결정합니다. 예를 들어 필요한 라이브러리가 없으면 관련 구성을 적용하지 않을 수 있습니다. 조건 결과는 시작 보고서에서 확인합니다.",
+      "사용자 Bean이 있으면 특정 자동 구성이 물러나는 back-off가 자주 사용됩니다. 다만 모든 자동 구성이 같은 방식은 아닙니다. 직접 Bean을 추가한 뒤 기존 설정 속성이 그대로 적용된다고 가정하지 않습니다.",
+      "--debug 등으로 조건 평가 보고서를 확인해 매치·불일치 이유를 읽습니다. 에러를 없애려고 자동 구성을 대량 제외하기 전에 필요한 클래스와 속성·후보 Bean을 확인합니다."
+    ],
+    "examples": [
+      {
+        "label": "터미널",
+        "code": "java -jar orders.jar --debug"
+      },
+      {
+        "label": "Java",
+        "code": "@Configuration(proxyBeanMethods = false)\nclass TimeConfig {\n    @Bean java.time.Clock clock() {\n        return java.time.Clock.systemUTC();\n    }\n}"
+      }
+    ],
+    "explanation": "Clock은 앱이 직접 필요한 의존성을 등록하는 예입니다. 보고서에서는 자동 구성의 조건을 확인하고 일반 사용자 Bean은 컨테이너 테스트로 확인합니다.",
+    "exercise": {
+      "steps": [
+        "웹·DB 의존성을 각각 추가한 전후의 조건 평가 결과를 비교한다.",
+        "자동 구성 문서에서 @ConditionalOnMissingBean 사용 사례를 찾아 사용자 설정과의 관계를 기록한다."
+      ],
+      "expected": "어떤 의존성·설정·Bean 조건 때문에 특정 구성이 활성화되었는지 설명할 수 있어야 합니다."
+    },
+    "pitfalls": [
+      "Starter와 BOM의 버전을 제각각 올리면 검증된 조합에서 벗어날 수 있습니다. 재정의한 버전의 이유와 호환 검증을 남깁니다."
+    ],
+    "quiz": [
+      {
+        "question": "Starter와 자동 구성은 같은 것인가요?",
+        "answer": "Starter는 주로 의존성을 가져오는 통로이고 자동 구성은 실행 환경의 조건을 보고 Bean을 구성하는 동작입니다. 서로 연결되지만 역할이 다릅니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.spring.io/spring-boot/reference/using/auto-configuration.html"
+      }
+    ]
+  },
+  {
+    "id": "external-config",
+    "goal": "외부 설정을 타입과 검증 규칙으로 묶는다.",
+    "intro": "주문 최대 수량이 환경마다 다르더라도 코드를 다시 빌드할 필요는 없습니다. 설정 출처와 유효 범위를 고정하면 배포 실수를 시작 시 발견할 수 있습니다.",
+    "sections": [
+      "properties와 YAML은 설정 표현 방식입니다. 같은 키가 파일·환경 변수·명령행에 동시에 있으면 Boot의 우선순위가 적용됩니다. 같은 위치에 두 형식을 중복해 두기보다 하나를 선택합니다.",
+      "환경 변수는 배포 환경에서 주입하고 명령행 인자는 일회성 실행을 바꿀 수 있습니다. 비밀값을 명령행에 직접 넣으면 프로세스 목록이나 기록에 드러날 수 있으므로 관리되는 비밀 주입 수단을 사용합니다.",
+      "@ConfigurationProperties는 관련 설정을 객체로 바인딩합니다. @Validated와 Bean Validation 제약으로 범위를 검사하고 @ConfigurationPropertiesScan 등으로 등록합니다. 단순 @Value 여러 개보다 계약을 모으기 쉽습니다.",
+      "프로필은 환경별 차이를 묶지만 비밀번호 저장소가 아닙니다. 예시 파일에는 변수 이름과 설명만 남깁니다. 필수값을 임의 기본값으로 덮어 운영 오류를 숨기지 않습니다."
+    ],
+    "examples": [
+      {
+        "label": "Kotlin",
+        "code": "@ConfigurationProperties(\"orders\")\n@Validated\ndata class OrderProperties(\n    @field:Min(1) val maxQuantity: Int\n)"
+      },
+      {
+        "label": "설정",
+        "code": "orders.max-quantity=100"
+      }
+    ],
+    "explanation": "jakarta.validation.constraints.Min과 Boot 설정 애너테이션을 사용하고 검증 구현체 의존성이 필요합니다. 시작 클래스에 @ConfigurationPropertiesScan을 추가하거나 타입을 명시 등록합니다.",
+    "exercise": {
+      "steps": [
+        "max-quantity=0으로 시작해 바인딩 검증이 실패하는지 확인한다.",
+        "환경 변수 ORDERS_MAXQUANTITY로 같은 값을 바꿔 유효 설정을 확인한다."
+      ],
+      "expected": "잘못된 값이면 요청을 받기 전에 시작이 실패하고 오류 메시지가 설정 키와 원인을 알려야 합니다."
+    },
+    "pitfalls": [
+      "환경 변수의 relaxed binding 규칙은 파일 키와 완전히 같은 표기가 아닙니다. 하이픈 제거·점의 밑줄 변환 등 공식 규칙을 확인합니다."
+    ],
+    "quiz": [
+      {
+        "question": "설정값을 읽을 때마다 문자열에서 변환하면 어떤 문제가 있나요?",
+        "answer": "유효성 검사와 기본값 규칙이 여러 호출에 흩어집니다. 타입으로 바인딩하고 시작 시 검증하면 잘못된 환경을 더 일찍 발견할 수 있습니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.spring.io/spring-boot/reference/features/external-config.html"
+      }
+    ]
+  },
+  {
+    "id": "boot-lifecycle",
+    "goal": "준비 작업·정상 종료·실패 진단을 분리한다.",
+    "intro": "프로세스가 살아 있다는 상태와 주문을 처리할 준비가 된 상태는 다릅니다. 시작과 종료 중 요청을 어디까지 허용할지 정해야 합니다.",
+    "sections": [
+      "ApplicationRunner는 해석된 인자, CommandLineRunner는 문자열 인자를 받는 시작 후 실행 지점입니다. 오래 걸리는 초기 작업은 준비 완료 시점을 늦춥니다. 매 시작마다 운영 데이터를 임의 생성하지 않습니다.",
+      "시작 실패 분석은 포트 충돌·설정 바인딩·Bean 생성·외부 연결 등의 원인을 구분하도록 돕습니다. 최상위 예외만 보지 말고 원인 체인의 구체적인 설정 키나 Bean을 확인합니다.",
+      "graceful shutdown은 새 요청 유입을 줄이고 진행 중인 작업에 종료 유예 시간을 주는 과정입니다. 로드 밸런서의 대상 제외와 앱의 종료 제한, 컨테이너 강제 종료 시간이 서로 맞아야 합니다.",
+      "생성한 Executor·파일·외부 클라이언트의 정리 책임을 정합니다. @PreDestroy 등 종료 콜백에 무한 대기를 넣지 않습니다. 강제 종료나 프로세스 손실에서는 콜백이 실행되지 않을 수도 있습니다."
+    ],
+    "examples": [
+      {
+        "label": "설정",
+        "code": "server.shutdown=graceful\nspring.lifecycle.timeout-per-shutdown-phase=20s"
+      },
+      {
+        "label": "Java",
+        "code": "@Bean\nApplicationRunner showMode(OrderProperties properties) {\n    return args -> System.out.println(\"maxQuantity=\" + properties.maxQuantity());\n}"
+      }
+    ],
+    "explanation": "Java 설정 타입이 maxQuantity 접근자를 제공한다고 가정한 코드 조각입니다. 출력은 비밀값이 아닌 확인용 설정으로 제한합니다.",
+    "exercise": {
+      "steps": [
+        "실습 앱에서 느린 요청을 보낸 뒤 정상 종료 신호를 전달해 완료 여부를 확인한다.",
+        "유예 시간을 넘기는 작업이 있을 때 종료와 데이터 정합성이 어떻게 되는지 기록한다."
+      ],
+      "expected": "신규 요청 유입 차단·진행 중 요청·프로세스 종료 시간을 구분해 설명해야 합니다."
+    },
+    "pitfalls": [
+      "종료 콜백에만 중요한 주문 저장을 맡기면 비정상 종료 때 유실될 수 있습니다. 업무 완료 시점에 지속 가능한 저장을 끝냅니다."
+    ],
+    "quiz": [
+      {
+        "question": "종료 유예 시간을 길게 잡으면 무조건 안전한가요?",
+        "answer": "배포와 복구가 늦어지고 외부 시스템의 종료 제한보다 길면 결국 강제 종료됩니다. 작업 시간과 플랫폼 제한에 맞는 예산을 정해야 합니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.spring.io/spring-boot/reference/web/graceful-shutdown.html"
+      }
+    ]
+  },
+  {
+    "id": "boot-dependencies",
+    "goal": "주요 버전 변경에서 빌드·직렬화·테스트 경계를 검토한다.",
+    "intro": "Boot 버전을 올리면 앱 코드가 같아도 하위 라이브러리와 패키지가 바뀔 수 있습니다. 컴파일과 실제 요청 계약을 모두 검증합니다.",
+    "sections": [
+      "Java Toolchain은 컴파일·테스트에 사용할 JDK를 정하고 release·Kotlin jvmTarget은 산출물 호환성을 제한합니다. Gradle 실행 JDK의 지원 범위도 별도로 확인합니다. 이 과정의 Java 기준은 25입니다.",
+      "Boot 플러그인은 bootJar 같은 작업을 제공하고 BOM은 라이브러리 버전을 관리합니다. Kotlin·JPA·Spring 컴파일러 플러그인의 버전은 서로 호환되게 고정합니다. latest 같은 움직이는 버전을 학습 산출물에 사용하지 않습니다.",
+      "Boot 3 예제를 Boot 4 프로젝트에 복사할 때 공식 마이그레이션 가이드와 해당 버전 API를 확인합니다. Jakarta 패키지, Servlet 요구사항, 제거된 API와 의존성 모듈 변화가 컴파일·실행에 영향을 줍니다.",
+      "Boot 4에서는 Jackson 3 중심의 구성과 테스트 모듈 재구성이 중요한 차이입니다. JUnit 6에서도 Jupiter API를 사용하지만 필요한 JDK와 실행기 버전을 맞춰야 합니다. import를 자동 수정하는 것만으로 JSON 계약이 유지되지는 않습니다."
+    ],
+    "examples": [
+      {
+        "label": "터미널",
+        "code": "./gradlew --version\n./gradlew dependencies --configuration testRuntimeClasspath\n./gradlew dependencyInsight --dependency jackson-databind --configuration runtimeClasspath\n./gradlew clean test bootJar"
+      }
+    ],
+    "explanation": "실제 선택된 의존성 그래프를 저장해 버전 변경 전후를 비교합니다. 단순 컴파일 성공에 더해 날짜·enum·null·오류 응답의 회귀 테스트를 실행합니다.",
+    "exercise": {
+      "steps": [
+        "사용한 JDK·Boot·Kotlin·Gradle 버전을 README에 정확한 값으로 기록한다.",
+        "Boot 3 코드 한 조각을 읽고 Boot 4의 패키지·의존성·동작 차이를 공식 문서와 대조한다."
+      ],
+      "expected": "버전 재정의 이유와 실패한 호환성 검증의 수정 근거가 남아야 합니다."
+    },
+    "pitfalls": [
+      "블로그에 있는 테스트 애너테이션 import를 최신 프로젝트에 그대로 사용하면 이동·삭제된 모듈 때문에 실패할 수 있습니다."
+    ],
+    "quiz": [
+      {
+        "question": "Jupiter라는 이름은 JUnit 5에만 쓰이나요?",
+        "answer": "아닙니다. Jupiter는 테스트 프로그래밍 모델과 엔진의 이름이며 JUnit 6에서도 사용합니다. 명칭과 제품 버전 번호를 구분해야 합니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Migration-Guide"
+      }
+    ]
+  },
+  {
+    "id": "boot-lab",
+    "goal": "실행 환경을 분리하고 잘못된 설정을 시작 시 거절하는 앱을 만든다.",
+    "intro": "주문 최대 수량과 저장소 연결을 환경 설정으로 옮긴 뒤 같은 JAR를 서로 다른 환경에서 실행해 봅니다.",
+    "sections": [
+      "개발·테스트는 DB 주소와 데이터 정책을 분리합니다. 테스트가 개발자의 개인 DB에 접속하지 않도록 명시 설정하거나 격리된 컨테이너를 사용합니다. 프로필 이름만으로 연결 대상이 보장되지는 않습니다.",
+      "필수 설정의 누락·범위 오류를 시작 테스트로 재현합니다. 외부 URL·수량 제한 등의 의미를 타입으로 표현합니다. 기본값이 적절한 항목과 운영에서 반드시 입력해야 하는 항목을 구분합니다.",
+      "bootJar로 실행 산출물을 만들고 IDE 없이 java -jar로 실행합니다. 테스트가 건너뛰어지지 않았는지 별도로 확인합니다. 일반 jar와 실행 Boot JAR가 함께 있다면 배포 파일을 정확히 선택합니다.",
+      "README에는 실행 명령·예시 환경 변수·포트·상태 확인·종료 방법을 적습니다. 샘플 설정은 실제 비밀값 없이 제공하고 처음 실행하는 사용자가 데이터 준비 순서를 알 수 있게 합니다."
+    ],
+    "examples": [
+      {
+        "label": "터미널",
+        "code": "./gradlew test bootJar\njava -jar build/libs/orders.jar --spring.profiles.active=local --orders.max-quantity=100"
+      },
+      {
+        "label": "Kotlin DSL",
+        "code": "tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>(\"bootJar\") {\n    archiveFileName.set(\"orders.jar\")\n}"
+      }
+    ],
+    "explanation": "명령의 파일 이름과 빌드 설정을 맞췄습니다. local 환경에 필요한 의존성·Bean·검증 설정은 앞 단원의 앱에 구성되어 있어야 합니다.",
+    "exercise": {
+      "steps": [
+        "정상 설정으로 JAR를 실행하고 최대 수량을 넘는 주문이 거절되는지 확인한다.",
+        "최대 수량 0과 잘못된 DB 주소 각각의 실패 시점과 메시지를 기록한다."
+      ],
+      "expected": "정상 실행·설정 오류·연결 오류를 다른 원인으로 진단하고 README만으로 재현할 수 있어야 합니다."
+    },
+    "pitfalls": [
+      "java -jar에 전달할 비밀번호를 명령행 예제에 직접 쓰지 않습니다. 프로세스 목록과 셸 기록에 남을 수 있습니다."
+    ],
+    "quiz": [
+      {
+        "question": "빌드 성공과 배포 실행 성공을 왜 따로 확인하나요?",
+        "answer": "패키징·환경 변수·작업 경로·운영 JDK는 컴파일 테스트와 다릅니다. 실제 JAR를 실행해야 빠진 의존성과 잘못된 실행 설정을 발견할 수 있습니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.spring.io/spring-boot/gradle-plugin/packaging.html"
+      }
+    ]
+  }
+]

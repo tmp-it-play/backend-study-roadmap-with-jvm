@@ -1,0 +1,227 @@
+[
+  {
+    "stage": "getting-started",
+    "title": "두 DSL로 같은 태스크 실행",
+    "requires": "JDK 25",
+    "command": "cd examples/jvm-core\n./gradlew test",
+    "task": "build.gradle.kts와 dsl-groovy/build.gradle에서 greet를 실행하고 출력과 태스크 등록 문법을 비교합니다.",
+    "expected": "두 DSL 모두 hello JVM을 출력합니다. 테스트가 모두 통과합니다.",
+    "verify": "./gradlew greet\n./gradlew -p dsl-groovy greet",
+    "files": [
+      "jvm-core/build.gradle.kts",
+      "jvm-core/dsl-groovy/build.gradle"
+    ],
+    "simulator": "beans"
+  },
+  {
+    "stage": "java",
+    "title": "주문 금액과 취소 규칙",
+    "requires": "JDK 25",
+    "command": "cd examples/jvm-core\n./gradlew test --tests \"*PurchaseTest\"",
+    "task": "JavaPurchase의 할인율과 품목 수량을 바꾸고 경계 테스트를 추가합니다. 입력 목록을 바꿔도 확정 금액이 달라지지 않는지 확인합니다.",
+    "expected": "10000원에 10% 할인은 9000원입니다. 취소를 두 번 해도 CANCELLED 상태를 유지합니다.",
+    "verify": "./gradlew test --tests \"*PurchaseTest\"",
+    "files": [
+      "jvm-core/src/main/java/study/JavaPurchase.java",
+      "jvm-core/src/test/java/study/PurchaseTest.java"
+    ],
+    "simulator": null
+  },
+  {
+    "stage": "kotlin",
+    "title": "같은 주문 규칙을 Kotlin으로 비교",
+    "requires": "JDK 25",
+    "command": "cd examples/jvm-core\n./gradlew test --tests \"*KotlinBoundaryTest\" --tests \"*PurchaseTest\"",
+    "task": "KotlinPurchase와 JavaPurchase에 같은 입력을 넣습니다. null·공백·음수·오버플로 입력을 테스트하고 data class copy의 공유 참조를 관찰합니다.",
+    "expected": "두 언어가 같은 금액과 취소 결과를 내며, nullable 입력의 처리 기준을 테스트로 설명할 수 있습니다.",
+    "verify": "./gradlew test --tests \"*KotlinBoundaryTest\" --tests \"*PurchaseTest\"",
+    "files": [
+      "jvm-core/src/main/kotlin/study/KotlinPurchase.kt",
+      "jvm-core/src/test/kotlin/study/KotlinBoundaryTest.kt"
+    ],
+    "simulator": null
+  },
+  {
+    "stage": "jvm",
+    "title": "바이트코드와 경쟁 상태",
+    "requires": "JDK 25",
+    "command": "cd examples/jvm-core\n./gradlew test --tests \"*StockConcurrencyTest\"\njavap -classpath build/classes/java/main -c study.JavaOrderLine\njavap -classpath build/classes/kotlin/main -c study.KotlinOrderLine",
+    "task": "생성된 접근자와 계산 명령을 비교합니다. 재고 보호를 제거했을 때 실패할 수 있는 순서를 브라우저에서 먼저 재현하고 코드와 연결합니다.",
+    "expected": "같은 객체의 마지막 재고 1개에 성공은 1번입니다. 가상 스레드만 사용해서는 경쟁 상태가 해결되지 않습니다.",
+    "verify": "./gradlew test --tests \"*StockConcurrencyTest\"",
+    "files": [
+      "jvm-core/src/test/java/study/StockConcurrencyTest.java"
+    ],
+    "simulator": "stock"
+  },
+  {
+    "stage": "web",
+    "title": "HTTP 요청과 오류 계약",
+    "requires": "JDK 25, Python 3",
+    "command": "cd examples/orders\n./gradlew bootRun --args=\"--spring.profiles.active=memory\"",
+    "task": "서버를 켠 터미널은 두고 다른 터미널에서 walkthrough.py를 실행합니다. 로그인·생성·재전송·취소 요청의 상태 코드와 Location을 확인합니다.",
+    "expected": "정상 생성 201, 미인증 조회 401, CSRF 누락 403, 타인 주문 404, 키 충돌 409를 구분합니다.",
+    "verify": "cd examples/orders\npython3 scripts/walkthrough.py",
+    "files": [
+      "orders/scripts/walkthrough.py",
+      "orders/requests.http"
+    ],
+    "simulator": "request"
+  },
+  {
+    "stage": "database",
+    "title": "제약·인덱스·격리 수준",
+    "requires": "JDK 25, Docker",
+    "command": "cd examples/orders\ndocker compose up -d db\n./gradlew postgresTest --tests \"*PostgresLabTest\"",
+    "task": "Flyway 스키마를 읽고 SQL 실습을 실행합니다. 임시 테이블에서 인덱스 전후 실행 계획을 비교하고, 테스트의 두 커넥션으로 격리 수준에 따른 재조회 결과를 확인합니다.",
+    "expected": "음수 재고는 DB에서 거절됩니다. READ COMMITTED와 REPEATABLE READ의 재조회 결과가 다릅니다. 작은 테이블의 인덱스 사용을 강제하지 않습니다.",
+    "verify": "docker compose exec -T db psql -U orders -d orders < sql/index-lab.sql",
+    "files": [
+      "orders/src/main/resources/db/migration/V1__orders.sql",
+      "orders/sql/index-lab.sql",
+      "orders/src/test/java/study/orders/PostgresLabTest.java"
+    ],
+    "simulator": "queries"
+  },
+  {
+    "stage": "spring-core",
+    "title": "Bean과 프록시",
+    "requires": "JDK 25",
+    "command": "cd examples/orders\n./gradlew test --tests \"*ContainerLabTest\"",
+    "task": "후보를 하나 더 등록하거나 scope를 바꿉니다. outer에서 inner를 호출할 때와 프록시를 통해 inner를 호출할 때 advice 호출 수를 비교합니다.",
+    "expected": "후보 중복은 예외로 검출되고 prototype은 새 인스턴스를 반환합니다. 내부 호출은 advice를 추가로 거치지 않습니다.",
+    "verify": "./gradlew test --tests \"*ContainerLabTest\"",
+    "files": [
+      "orders/src/test/java/study/orders/ContainerLabTest.java"
+    ],
+    "simulator": "beans"
+  },
+  {
+    "stage": "spring-boot",
+    "title": "설정과 실행 JAR",
+    "requires": "JDK 25",
+    "command": "cd examples/orders\n./gradlew bootJar\njava -jar build/libs/orders.jar --spring.profiles.active=memory --orders.max-quantity=2",
+    "task": "수량 상한을 2로 바꾸고 수량 3의 요청을 보냅니다. 다른 실행에서는 --debug를 추가해 자동 구성 보고서를 읽습니다. Ctrl+C로 정상 종료 로그를 확인합니다.",
+    "expected": "상한 초과는 400입니다. JAR가 IDE 없이 실행되고 종료 시 진행 중 요청을 정리합니다.",
+    "verify": "curl -i http://127.0.0.1:8080/actuator/health",
+    "files": [
+      "orders/src/main/java/study/orders/OrderProperties.java",
+      "orders/src/main/resources/application.properties"
+    ],
+    "simulator": "beans"
+  },
+  {
+    "stage": "spring-mvc",
+    "title": "Java·Kotlin API 계약",
+    "requires": "JDK 25",
+    "command": "cd examples/orders\n./gradlew test --tests \"*MemoryApiTest\"",
+    "task": "/api/orders와 /api/kotlin/orders에 같은 JSON을 보냅니다. Kotlin DTO에서 @field:Positive를 제거해 검증 테스트가 어떤 실패를 잡는지 확인한 뒤 복원합니다.",
+    "expected": "두 엔드포인트의 정상·오류 계약이 같습니다. {}와 null·0 수량은 400이며 업무 로직으로 넘기지 않습니다.",
+    "verify": "./gradlew test --tests \"*MemoryApiTest\"",
+    "files": [
+      "orders/src/main/java/study/orders/OrdersController.java",
+      "orders/src/main/kotlin/study/orders/KotlinOrdersController.kt",
+      "orders/src/main/kotlin/study/orders/OrderRequest.kt"
+    ],
+    "simulator": "request"
+  },
+  {
+    "stage": "persistence",
+    "title": "롤백·N+1·동시 주문",
+    "requires": "JDK 25, Docker",
+    "command": "cd examples/orders\n./gradlew postgresTest",
+    "task": "flush 이후 실패, 같은 키의 동시 재전송, 마지막 재고 경쟁, 중복 취소를 검증합니다. fetch join을 제거한 경우의 SQL 수를 원래 결과와 비교한 뒤 복원합니다.",
+    "expected": "flush 이후 롤백하면 재고가 복원됩니다. 마지막 재고는 1건만 판매되고 중복 키는 같은 주문 ID를 반환합니다. 서로 다른 상품 2개의 조회는 3회에서 1회로 줄어듭니다.",
+    "verify": "./gradlew postgresTest --tests \"*PostgresLabTest\"",
+    "files": [
+      "orders/src/main/java/study/orders/persistence/JpaOrderStore.java",
+      "orders/src/test/java/study/orders/PostgresLabTest.java"
+    ],
+    "simulator": "transaction"
+  },
+  {
+    "stage": "security",
+    "title": "세션·CSRF·주문 소유권",
+    "requires": "JDK 25, Python 3",
+    "command": "cd examples/orders\n./gradlew bootRun --args=\"--spring.profiles.active=memory\"",
+    "task": "walkthrough.py의 alice·bob 세션을 비교합니다. alice 주문을 bob이 조회·취소하는 요청과 CSRF 없는 변경 요청을 확인합니다. 로그인 후에는 새 CSRF 토큰을 받습니다.",
+    "expected": "자신의 주문만 조회·취소할 수 있습니다. 취소 재전송이 재고를 반복해서 늘리지 않습니다. 로그아웃한 세션의 주문 조회는 401입니다.",
+    "verify": "cd examples/orders\npython3 scripts/walkthrough.py",
+    "files": [
+      "orders/src/main/java/study/orders/SecurityConfig.java",
+      "orders/scripts/walkthrough.py"
+    ],
+    "simulator": "request"
+  },
+  {
+    "stage": "testing",
+    "title": "실패를 잡는 테스트",
+    "requires": "JDK 25, Docker",
+    "command": "cd examples/orders\n./gradlew check",
+    "task": "한 번에 한 결함을 넣습니다: 요청 키 비교 제거, 소유권 검사 제거, 재고 락 제거 중 하나를 선택합니다. 어떤 테스트가 실패하는지 기록하고 코드를 복원합니다.",
+    "expected": "단위·메모리 MVC·실제 PostgreSQL 테스트를 구분할 수 있습니다. Docker가 없으면 PostgreSQL 검증을 건너뛰어 성공으로 표시하지 않습니다.",
+    "verify": "./gradlew check",
+    "files": [
+      "orders/src/test/java/study/orders/MemoryApiTest.java",
+      "orders/src/test/java/study/orders/PostgresLabTest.java"
+    ],
+    "simulator": "stock"
+  },
+  {
+    "stage": "concurrency",
+    "title": "재고 정합성과 응답 시간",
+    "requires": "JDK 25, Docker, Python 3",
+    "command": "cd examples/orders\ndocker compose up -d db\n./gradlew bootRun",
+    "task": "다른 터미널에서 load.py를 실행해 요청 수·동시성·p95를 기록합니다. 같은 입력으로 SQL 조회 전략이나 풀 크기를 한 가지만 바꿔 비교합니다.",
+    "expected": "postgresTest에서 초과 판매가 없고, 부하 실험은 성공 수·실패 수·p95를 함께 출력합니다. 작은 로컬 측정값을 운영 성능으로 일반화하지 않습니다.",
+    "verify": "cd examples/orders\npython3 scripts/load.py --requests 100 --concurrency 8\n./gradlew postgresTest --tests \"*PostgresLabTest.concurrentLastItem\"",
+    "files": [
+      "orders/scripts/load.py",
+      "orders/src/test/java/study/orders/PostgresLabTest.java"
+    ],
+    "simulator": "stock"
+  },
+  {
+    "stage": "operations",
+    "title": "컨테이너·장애·복구",
+    "requires": "Docker, Python 3",
+    "command": "cd examples/orders\ndocker compose up -d --build",
+    "task": "health를 확인한 뒤 실습 DB만 stop/start합니다. 요청 실패와 회복을 관찰합니다. pg_dump 백업을 별도 복원 DB에 넣고 주문 수를 대조합니다. 상세 명령은 OPERATIONS.md를 따릅니다.",
+    "expected": "정상 시 UP, DB 장애 시 health 503 또는 DOWN, 복구 후 요청 성공을 확인합니다. 원본 데이터와 복원본의 건수가 같습니다.",
+    "verify": "python3 scripts/walkthrough.py\ncurl -i http://127.0.0.1:8080/actuator/health",
+    "files": [
+      "orders/compose.yaml",
+      "orders/Dockerfile",
+      "orders/OPERATIONS.md"
+    ],
+    "simulator": null
+  },
+  {
+    "stage": "architecture",
+    "title": "종합 시연과 설계 기록",
+    "requires": "JDK 25, Docker, Python 3",
+    "command": "cd examples/orders\n./gradlew check bootJar",
+    "task": "요청→DTO→서비스→저장소→DB 경계를 코드에서 따라갑니다. 메모리와 JPA 구현의 같은 계약을 시연한 뒤 ADR 양식에 락·멱등성·세션을 선택한 이유와 제한을 적습니다.",
+    "expected": "정상·중복·타인 접근·초과 판매·장애 복구를 근거와 함께 설명합니다. 사용자별 락이 같은 사용자의 주문을 직렬화한다는 비용도 기록합니다.",
+    "verify": "python3 scripts/walkthrough.py",
+    "files": [
+      "orders/ADR.md",
+      "orders/src/main/java/study/orders/OrderStore.java"
+    ],
+    "simulator": null
+  },
+  {
+    "stage": "advanced",
+    "title": "필요한 기술 한 가지 선택",
+    "requires": "JDK 25; 선택 실험에 따라 Docker 또는 GraalVM",
+    "command": "cd examples/orders\n./gradlew test --tests \"*AdvancedLabTest\"",
+    "task": "ADVANCED.md의 리액티브·메시징·배치·분산·Native·특화 저장소 중 하나를 선택합니다. 제공하는 작은 실험을 실행하고 실제 도입 시 추가로 필요한 보장을 기록합니다.",
+    "expected": "리액티브 backpressure와 중복 소비·체크포인트 재시작의 결과를 확인합니다. 모형 결과와 실제 브로커·다중 서버·Native 빌드의 검증 범위를 구분합니다.",
+    "verify": "./gradlew test --tests \"*AdvancedLabTest\"",
+    "files": [
+      "orders/ADVANCED.md",
+      "orders/src/test/java/study/orders/AdvancedLabTest.java"
+    ],
+    "simulator": null
+  }
+]

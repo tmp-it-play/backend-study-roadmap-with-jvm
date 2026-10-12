@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { stages, coreStages, coreKeys, notes, totalChapters, chapterKey, numberOf, stageHref, stageText } from '@/lib/curriculum';
+import { stages, coreStages, coreKeys, notes, totalChapters, chapterKey, lessonHref, numberOf, stageHref, stageText } from '@/lib/curriculum';
 import { useLearning } from './LearningProvider';
 import { Skyline, Car } from './Scenery';
 
@@ -31,7 +31,7 @@ export default function Roadmap() {
       <p className="hero-languages"><span>Java</span><i /> <span>Kotlin</span><i /> <span>Spring Boot</span></p>
       <h1>JVM 백엔드 학습</h1><div className="road-sign-title">로드맵 <span aria-hidden="true">➜</span></div>
       <p className="hero-description">언어의 기본기부터 서비스 운영까지.<br />표지판을 따라, 하나씩 이해하며 나아가세요.</p>
-      <div className="hero-stats"><span>기본 <b>15</b>단계</span><span>학습 목차 <b>{totalChapters}</b>개</span><span>보충 지식 <b>{notes.length}</b>개</span></div>
+      <div className="hero-stats"><span>기본 <b>15</b>단계</span><span>학습 본문 <b>{totalChapters}</b>개</span><span>보충 지식 <b>{notes.length}</b>개</span></div>
       <Skyline />
     </section>
     <div className="journey-intro">
@@ -40,7 +40,7 @@ export default function Roadmap() {
           <h2>{nextChapter?.title ?? '이제 나만의 서비스를 만들어 보세요'}</h2>
           <p>{nextStage ? `${numberOf(nextStage)}단계 · ${nextStage.title}` : '선택 심화에서 필요한 기술을 더 탐색해 보세요.'}</p>
         </div>
-        <Link className="go-button" href={nextStage && nextChapter ? stageHref(nextStage, nextChapter) : '/stages/advanced'}>{done ? '이어서 보기' : '출발하기'} <span aria-hidden="true">➜</span></Link>
+        <Link className="go-button" href={nextStage && nextChapter ? lessonHref(nextStage, nextChapter) : '/stages/advanced'}>{done ? '이어서 보기' : '출발하기'} <span aria-hidden="true">➜</span></Link>
         <div className="overall-progress"><span>기본 과정</span><progress value={done} max={coreKeys.length} aria-label="기본 과정 완료율" /><span>{ready ? `${done} / ${coreKeys.length}` : `0 / ${coreKeys.length}`}</span><strong>{percent}%</strong></div>
       </section>
       <details className="route-guide"><summary>어디서부터 시작하면 좋을까요?<span aria-hidden="true">⌄</span></summary><div>
@@ -48,7 +48,7 @@ export default function Roadmap() {
         <p><strong>Java를 안다면</strong> Kotlin과 상호운용부터, <strong>Kotlin을 안다면</strong> Java의 객체·제네릭·예외를 비교하며 시작하세요.</p>
         <p><strong>Spring을 써 봤다면</strong> 단계별 완료 기준으로 점검하고 트랜잭션·동시성·운영을 보강하세요.</p>
       </div></details>
-      <div className="curriculum-notice"><span aria-hidden="true">▤</span><p><strong>전체 학습 계획을 먼저 펼쳐 보세요.</strong> 지금은 단계별 상세 목차, 실습과 완료 기준을 제공합니다. 보충 지식은 바로 읽을 수 있습니다.</p></div>
+      <div className="curriculum-notice"><span aria-hidden="true">▤</span><p><strong>개념을 읽고, 예제로 확인하세요.</strong> 110개 단원의 본문과 실습, 셀프 체크 해설을 제공합니다. 궁금한 용어는 보충 지식에서 함께 살펴보세요.</p></div>
       <div className="roadmap-controls"><div className="search-field"><span aria-hidden="true">⌕</span><input ref={input} id="search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="개념이나 목차 검색 · 예: 트랜잭션, DSL" aria-label="로드맵 검색" /></div>
         <div className="view-toggle" role="group" aria-label="로드맵 보기 방식"><button aria-pressed={view === 'road'} onClick={() => setView('road')}>도로</button><button aria-pressed={view === 'list'} onClick={() => setView('list')}>목록</button></div>
       </div>
@@ -68,7 +68,7 @@ export default function Roadmap() {
             <div className="stage-progress"><span className={`signal ${stageDone === s.chapters.length ? 'complete' : stageDone ? 'started' : ''}`} aria-hidden="true" /><span>{stageDone === s.chapters.length ? '학습 완료' : stageDone ? '학습 중' : '시작 전'}</span><span>{stageDone}/{s.chapters.length}</span></div>
           </div><ol className="stops">{chapters.map((c) => {
             const learned = completed.includes(chapterKey(s, c));
-            return <li key={c.id}><Link href={stageHref(s, c)}><span className={`stop-number ${learned ? 'learned' : ''}`}>{learned ? '✓' : s.chapters.indexOf(c) + 1}</span><span className="stop-title"><strong>{c.title}</strong><span>{c.topics.slice(0, 2).join(' · ')}</span></span><span className="stop-arrow" aria-hidden="true">›</span></Link></li>;
+            return <li key={c.id}><Link href={lessonHref(s, c)}><span className={`stop-number ${learned ? 'learned' : ''}`}>{learned ? '✓' : s.chapters.indexOf(c) + 1}</span><span className="stop-title"><strong>{c.title}</strong><span>{c.topics.slice(0, 2).join(' · ')}</span></span><span className="stop-arrow" aria-hidden="true">›</span></Link></li>;
           })}</ol></div>
           <Link className="lap-more" href={stageHref(s)}>세부 목차와 실습 보기 <span aria-hidden="true">↗</span></Link>
         </section>;

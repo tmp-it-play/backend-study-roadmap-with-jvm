@@ -1,0 +1,310 @@
+[
+  {
+    "id": "execution",
+    "goal": "소스·바이트코드·실행 과정의 차이를 관찰한다.",
+    "intro": "Java와 Kotlin이 함께 일할 수 있는 이유는 소스 문법이 같아서가 아니라 JVM이 이해하는 클래스와 호출 규약으로 컴파일되기 때문입니다.",
+    "sections": [
+      "javac와 Kotlin JVM 컴파일러는 소스에서 클래스 파일을 만듭니다. 실행에는 클래스와 의존 라이브러리가 필요합니다. Kotlin 표준 라이브러리를 빠뜨리면 컴파일 성공 뒤 런타임에 실패할 수 있습니다.",
+      "클래스 로더는 클래스 정의를 찾아 JVM에 로드합니다. 검증·링크·초기화는 서로 다른 과정입니다. static 초기화는 클래스가 처음 적극적으로 사용되는 시점 등에 수행되며 클래스 이름만 문자열로 안다고 초기화된 것은 아닙니다.",
+      "HotSpot은 인터프리터와 JIT 컴파일을 결합해 자주 실행되는 코드를 최적화할 수 있습니다. 처음 실행한 한 번의 시간만으로 정상 운영 성능을 판단하면 클래스 로딩과 워밍업 비용이 섞입니다.",
+      "javap -c는 명령을, -p는 비공개 멤버를, -v는 더 많은 클래스 정보를 보여 줍니다. Kotlin 프로퍼티의 getter와 최상위 함수의 정적 메서드 표현을 비교하되 컴파일러 버전별 결과를 고정된 언어 규칙으로 오해하지 않습니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "// Price.java\npublic record Price(long won) {\n    public long doubled() { return Math.multiplyExact(won, 2); }\n}"
+      },
+      {
+        "label": "터미널",
+        "code": "javac --release 25 Price.java\njavap -c -p Price\njavap -v Price"
+      }
+    ],
+    "explanation": "record 소스에 직접 쓰지 않은 접근자·equals 등의 메서드도 클래스 파일에 나타납니다. 바이트코드를 읽을 때 소스의 간결함과 실행 모델을 구분합니다.",
+    "exercise": {
+      "steps": [
+        "Price를 컴파일하고 doubled의 곱셈 호출과 생성된 접근자를 찾는다.",
+        "Kotlin data class의 컴파일 결과에서 copy와 component1을 확인한다."
+      ],
+      "expected": "두 언어의 결과에서 필드·메서드·생성자를 찾고 런타임에 필요한 라이브러리를 설명해야 합니다."
+    },
+    "pitfalls": [
+      "javap 출력은 JVM 최적화 뒤의 실제 기계어가 아닙니다. JIT가 실행 중 바꾼 결과와 클래스 파일의 바이트코드는 다릅니다."
+    ],
+    "quiz": [
+      {
+        "question": "같은 이름의 클래스가 항상 같은 타입인가요?",
+        "answer": "JVM에서는 클래스 이름뿐 아니라 그것을 정의한 클래스 로더도 타입 정체성에 관여합니다. 플러그인이나 서버 환경에서 중복 로딩은 캐스팅 오류의 원인이 될 수 있습니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/javap.html"
+      }
+    ]
+  },
+  {
+    "id": "memory",
+    "goal": "메모리 사용량을 객체의 도달 가능성과 자원 수명으로 설명한다.",
+    "intro": "요청이 끝났는데도 메모리가 계속 증가한다면 객체를 누가 붙잡고 있는지 확인해야 합니다. 지역 변수가 사라졌다고 모든 관련 객체가 즉시 제거되지는 않습니다.",
+    "sections": [
+      "스레드는 호출 프레임을 위한 스택을 사용하고 객체는 개념적으로 힙에서 관리됩니다. HotSpot의 메타스페이스는 클래스 메타데이터를 보관합니다. 최적화 때문에 실제 배치가 단순한 그림과 다를 수 있습니다.",
+      "GC는 사용자의 업무 의도보다 도달 가능성을 기준으로 회수 대상을 판단합니다. 활성 스레드 등의 루트에서 참조 경로가 이어지면 객체가 남습니다. static 컬렉션에 계속 넣은 요청 기록도 그 예입니다.",
+      "메모리 누수는 더 필요 없는 객체가 계속 도달 가능하게 남는 상황입니다. 부하 증가로 필요한 캐시가 늘어난 것과 구분하려면 GC 이후 살아남는 크기, 원소 수, 제거 정책을 함께 봅니다.",
+      "프로세스 메모리에는 힙 외에도 스레드 스택·클래스 메타데이터·코드 캐시·직접 버퍼 등이 들어갑니다. 컨테이너 제한을 전부 -Xmx로 할당하면 힙 밖의 사용량 때문에 종료될 수 있습니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "final class History {\n    private final java.util.ArrayDeque<String> recent = new java.util.ArrayDeque<>();\n    void remember(String id) {\n        recent.addLast(id);\n        if (recent.size() > 100) recent.removeFirst();\n    }\n}"
+      }
+    ],
+    "explanation": "단일 스레드에서 기록 수명을 제한하는 예제입니다. 실제 공유 캐시는 동시성·용량·TTL 정책을 제공하는 구현을 선택합니다.",
+    "exercise": {
+      "steps": [
+        "제거하지 않는 목록과 최대 100개 목록에 동일한 입력을 넣고 크기를 비교한다.",
+        "jcmd의 힙 정보와 운영체제의 프로세스 메모리를 비교해 값이 다른 이유를 적는다."
+      ],
+      "expected": "업무상 보관할 최대 개수나 시간과 실제 참조 제거 시점을 연결할 수 있어야 합니다."
+    },
+    "pitfalls": [
+      "System.gc 호출로 누수를 해결하려 하지 마세요. 참조가 유지된 객체는 수집 요청으로 제거되지 않습니다."
+    ],
+    "quiz": [
+      {
+        "question": "사용이 끝난 객체가 바로 해제되지 않는 이유는 무엇인가요?",
+        "answer": "GC는 도달 가능성과 수집 정책에 따라 동작합니다. 참조가 없어도 즉시 회수할 의무가 없으며 필요한 객체를 잘못 붙잡고 있으면 계속 남습니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.oracle.com/javase/specs/jvms/se25/html/jvms-2.html"
+      }
+    ]
+  },
+  {
+    "id": "gc",
+    "goal": "GC 로그와 진단 자료에서 가설을 세운다.",
+    "intro": "응답 시간이 느려졌다는 사실만으로 GC를 원인으로 지목할 수 없습니다. 요청 지연과 수집 이벤트의 시간대를 맞춰 증거를 봅니다.",
+    "sections": [
+      "객체 할당은 메모리를 사용하고 GC는 더 이상 도달할 수 없는 객체의 공간을 회수합니다. 수집기는 일부 작업을 애플리케이션과 병행하지만 멈춤 구간도 가질 수 있습니다. 알고리즘별 특성이 다릅니다.",
+      "처리량은 단위 시간의 작업량이고 지연은 개별 요청이 기다린 시간입니다. 짧은 멈춤을 줄이는 설정이 CPU나 메모리 비용을 더 쓸 수 있습니다. 운영 목표에 따라 절충을 평가합니다.",
+      "GC 로그에서는 시간·수집 이유·전후 사용량·멈춤 시간을 읽습니다. Full GC라는 단어만 세지 말고 할당 속도와 수집 뒤의 바닥값 추세를 봅니다. JVM·수집기·옵션을 기록해야 비교가 가능합니다.",
+      "JFR은 실행 이벤트를 기록하고 jcmd는 실행 중 JVM의 진단 명령을 제공합니다. 힙 덤프에는 민감한 데이터가 들어갈 수 있고 생성 비용이 큽니다. 접근이 통제된 실습 프로세스에서 먼저 절차를 익힙니다."
+    ],
+    "examples": [
+      {
+        "label": "터미널",
+        "code": "java -Xlog:gc*:file=gc.log:time,uptime,level,tags -jar orders.jar\njcmd -l\njcmd <PID> JFR.start name=orders settings=profile duration=60s filename=orders.jfr\njcmd <PID> GC.heap_info"
+      }
+    ],
+    "explanation": "<PID>는 앞 명령으로 확인한 자신의 학습 프로세스 ID로 바꿉니다. JFR은 설정과 부하에 따라 오버헤드가 있으므로 기록 조건도 성능 결과에 남깁니다.",
+    "exercise": {
+      "steps": [
+        "같은 부하에서 요청 p95와 GC 멈춤 시간대를 함께 기록한다.",
+        "수집 후 힙의 바닥값이 안정적인지 상승하는지 비교한다."
+      ],
+      "expected": "GC가 지연과 관련 있는지 시간 증거로 설명하고 추가 확인이 필요한 가설을 구분해야 합니다."
+    },
+    "pitfalls": [
+      "힙을 늘리는 변경은 증상을 늦출 수 있지만 무제한 캐시나 과도한 할당의 원인을 제거하지는 않습니다."
+    ],
+    "quiz": [
+      {
+        "question": "GC 직전 힙이 큰 것만으로 누수라고 할 수 있나요?",
+        "answer": "정상적으로 할당 후 수집되는 패턴일 수 있습니다. 비슷한 부하에서 수집 뒤 살아남는 크기가 계속 증가하는지와 참조 보유자를 확인해야 합니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.oracle.com/en/java/javase/25/docs/specs/man/jcmd.html"
+      }
+    ]
+  },
+  {
+    "id": "jvm-threads",
+    "goal": "가시성과 복합 연산의 원자성을 구분한다.",
+    "intro": "두 요청이 각각 재고 1개를 확인하고 둘 다 차감하면 판매 수량과 잔량이 맞지 않을 수 있습니다. 읽기·검사·쓰기 전체가 하나의 규칙입니다.",
+    "sections": [
+      "프로세스는 자원과 주소 공간의 경계이며 스레드는 그 안에서 실행을 진행합니다. 동시성은 여러 작업의 진행이 겹치는 것이고 병렬성은 실제 같은 순간의 실행입니다. 한 코어에서도 경쟁 상태는 생길 수 있습니다.",
+      "count++는 읽기·계산·쓰기의 복합 동작입니다. 두 스레드가 같은 이전 값을 읽으면 증가 하나를 잃을 수 있습니다. 값 하나를 읽는 것이 안전하다고 여러 연산의 묶음까지 안전해지지 않습니다.",
+      "volatile은 읽기·쓰기의 가시성과 순서 관계를 제공하지만 ++를 원자적으로 만들지 않습니다. synchronized는 같은 모니터를 사용하는 코드의 상호 배제와 메모리 가시성을 함께 제공합니다.",
+      "happens-before는 앞선 변경을 뒤의 동작이 관찰할 수 있는 메모리 모델상의 관계입니다. 락 해제와 이후 같은 락 획득, 스레드 시작·종료 확인 등이 관계를 만듭니다. 객체를 구성 중에 외부로 노출하지 않는 것도 중요합니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "final class Counter {\n    private int value;\n    synchronized void increment() { value++; }\n    synchronized int value() { return value; }\n}"
+      },
+      {
+        "label": "Kotlin",
+        "code": "class Counter {\n    private var value = 0\n    @Synchronized fun increment() { value++ }\n    @Synchronized fun value(): Int = value\n}"
+      }
+    ],
+    "explanation": "모든 접근이 같은 객체의 모니터를 사용합니다. 일부 읽기만 락 밖에서 수행하면 일관된 가시성 계약을 잃을 수 있습니다.",
+    "exercise": {
+      "steps": [
+        "두 스레드가 각각 정해진 횟수만큼 증가시키고 join 뒤 합계를 검증한다.",
+        "volatile 필드의 ++와 AtomicInteger.incrementAndGet을 비교한다."
+      ],
+      "expected": "스레드가 모두 끝난 뒤 증가 횟수와 최종 값이 일치해야 합니다. 한 번 실패가 없었다고 경쟁 상태가 없다고 결론 내리지는 않습니다."
+    },
+    "pitfalls": [
+      "서로 다른 Counter 인스턴스의 synchronized 메서드는 서로를 막지 않습니다. 보호할 상태와 락의 범위를 맞춥니다."
+    ],
+    "quiz": [
+      {
+        "question": "volatile만으로 재고 검사와 차감을 보호할 수 있나요?",
+        "answer": "여러 연산이 하나로 묶이지 않으므로 불가능합니다. 락·CAS 반복·DB 조건부 갱신 등 전체 규칙을 원자적으로 수행할 수단이 필요합니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.oracle.com/javase/specs/jls/se25/html/jls-17.html"
+      }
+    ]
+  },
+  {
+    "id": "interop",
+    "goal": "Java 호출자에게 보이는 Kotlin API와 null 계약을 설계한다.",
+    "intro": "같은 JVM에서 실행되어도 각 언어가 제공하는 편의 문법은 다릅니다. 공개 API는 양쪽 호출 코드를 작성해 보면서 검토합니다.",
+    "sections": [
+      "Java의 getter·setter는 Kotlin에서 프로퍼티처럼 사용할 수 있습니다. Kotlin 프로퍼티는 Java에서 접근자 메서드로 보이는 경우가 일반적입니다. 필드 직접 접근과 접근자 호출은 같은 계약이 아닙니다.",
+      "플랫폼 타입은 Java 선언의 null 가능성이 불명확할 때 나타납니다. 지원하는 nullability 애너테이션은 컴파일러의 해석을 돕지만 실제 외부 데이터의 검증까지 대신하지는 않습니다.",
+      "@JvmStatic은 Java의 정적 호출 형태를 제공하고 @JvmOverloads는 기본 인자의 일부 오버로드를 생성합니다. @JvmName은 JVM 메서드나 파일 파사드 이름 충돌을 조정합니다. 모두 실제 Java 호출자가 필요한 경우에 적용합니다.",
+      "Kotlin은 checked 예외 선언을 강제하지 않습니다. Java가 해당 예외를 catch하도록 API에 드러내려면 @Throws를 사용할 수 있습니다. 예외가 사라지는 것이 아니라 컴파일 시 선언 계약이 달라지는 것입니다."
+    ],
+    "examples": [
+      {
+        "label": "Kotlin",
+        "code": "class OrderNames {\n    companion object {\n        @JvmStatic\n        @JvmOverloads\n        fun label(id: Long, prefix: String = \"ORDER\"): String = \"$prefix-$id\"\n    }\n}"
+      },
+      {
+        "label": "Java",
+        "code": "String name = OrderNames.label(7L);\nSystem.out.println(name); // ORDER-7"
+      }
+    ],
+    "explanation": "Java는 Kotlin의 기본 인자 문법을 직접 사용하지 않으므로 생성된 오버로드를 호출합니다. Kotlin 쪽 호출은 기본 인자 규칙을 그대로 사용합니다.",
+    "exercise": {
+      "steps": [
+        "애너테이션을 하나씩 제거해 Java 호출 형태가 어떻게 달라지는지 확인한다.",
+        "Java에서 null을 반환하는 API를 Kotlin 경계에서 검증하는 함수를 작성한다."
+      ],
+      "expected": "각 애너테이션이 Java에 노출되는 어떤 서명을 바꾸는지 javap와 호출 코드로 확인해야 합니다."
+    },
+    "pitfalls": [
+      "internal은 JVM 수준의 강한 보안 경계가 아닙니다. 접근 제어 문법을 비밀 정보 보호 수단으로 생각하지 않습니다."
+    ],
+    "quiz": [
+      {
+        "question": "@JvmOverloads가 없으면 Java에서 기본 인자를 생략할 수 있나요?",
+        "answer": "일반적으로 전체 인자를 전달해야 합니다. 별도 오버로드를 직접 작성하거나 애너테이션으로 필요한 Java 호출 형태를 제공할 수 있습니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://kotlinlang.org/docs/java-to-kotlin-interop.html"
+      }
+    ]
+  },
+  {
+    "id": "jvm-types",
+    "goal": "소거·박싱·리플렉션이 런타임에 남기는 정보를 구분한다.",
+    "intro": "제네릭을 컴파일러가 검사한다는 사실과 실행 중 모든 타입 인자를 알 수 있다는 주장은 다릅니다. 프레임워크가 타입을 읽는 방식도 구분해야 합니다.",
+    "sections": [
+      "타입 소거 후에도 선언의 일부 제네릭 정보는 메타데이터에 남을 수 있지만 개별 List 객체가 원소 타입을 모두 보증하는 것은 아닙니다. 오버라이딩 호환성을 위해 컴파일러가 브리지 메서드를 만들기도 합니다.",
+      "int[]와 Integer[]는 다르고 Kotlin의 IntArray와 Array<Int>도 대응 방식이 다릅니다. nullable이나 제네릭 경계에서는 박싱이 필요할 수 있습니다. 성능 차이는 할당과 데이터 크기를 측정해 판단합니다.",
+      "리플렉션은 클래스·메서드·애너테이션 정보를 읽고 호출하는 수단입니다. 애너테이션의 RUNTIME 유지 정책이 있어야 실행 중 조회할 수 있습니다. 모듈 경계와 접근 제어 때문에 모든 비공개 요소를 자유롭게 열 수 있는 것은 아닙니다.",
+      "Java의 Class와 Kotlin의 KClass는 서로 연결되지만 기능과 의존성이 다릅니다. Kotlin 고유 정보까지 다루려면 kotlin-reflect가 필요할 수 있습니다. 리플렉션 기반 동작은 Native Image에서 힌트가 필요할 수 있습니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "@java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)\n@interface Audited {}\n@Audited final class OrderService {}\nboolean enabled = OrderService.class.isAnnotationPresent(Audited.class);"
+      },
+      {
+        "label": "Kotlin",
+        "code": "val primitive = intArrayOf(1, 2)\nval boxed = arrayOf(1, 2)\nprintln(primitive.javaClass.name)\nprintln(boxed.javaClass.name)"
+      }
+    ],
+    "explanation": "배열의 런타임 클래스 이름에서 기본형 배열과 박싱된 객체 배열의 차이를 확인합니다. 이름의 표기보다 두 표현의 의미를 이해하는 것이 목적입니다.",
+    "exercise": {
+      "steps": [
+        "애너테이션 유지 정책을 CLASS로 바꾸고 리플렉션 조회 결과를 비교한다.",
+        "제네릭 인터페이스를 구현한 클래스에서 javap -v로 bridge 표시를 찾는다."
+      ],
+      "expected": "컴파일 검증에 사용한 타입 정보와 런타임 조회 가능한 정보를 구분해야 합니다."
+    },
+    "pitfalls": [
+      "리플렉션으로 private에 접근하는 테스트는 내부 구조에 강하게 묶입니다. 공개 동작 검증을 우선합니다."
+    ],
+    "quiz": [
+      {
+        "question": "List<String>과 List<Integer>의 런타임 클래스만 보면 원소 타입을 알 수 있나요?",
+        "answer": "보통 같은 컬렉션 구현 클래스입니다. 선언 메타데이터나 실제 원소 검사 없이 그 객체의 모든 원소 타입을 확정할 수 없습니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://dev.java/learn/reflection/"
+      }
+    ]
+  },
+  {
+    "id": "mixed-project",
+    "goal": "두 언어가 공유하는 API의 타입·버전·실패 계약을 고정한다.",
+    "intro": "혼합 프로젝트는 언어별 폴더를 만드는 것으로 끝나지 않습니다. Java 호출자가 Kotlin의 가정과 동일한 계약을 지키는지 검증해야 합니다.",
+    "sections": [
+      "Java에서 Kotlin 최상위 함수는 생성된 파사드 클래스의 정적 메서드로 보입니다. companion 함수와 기본 인자도 Java용 표현이 달라집니다. 공개 라이브러리라면 양쪽 언어의 사용 예제를 테스트로 남깁니다.",
+      "Kotlin에서 Java 컬렉션은 가변성과 null 요소의 계약을 세심하게 봐야 합니다. API가 반환한 목록을 외부에서 수정할 수 있는지, null이 포함되는지 문서와 경계 코드로 명시합니다.",
+      "컴파일에 사용하는 JDK, Java release, Kotlin jvmTarget, 운영 JDK가 호환되어야 합니다. 같은 빌드 안에서 타깃이 다르면 일부 클래스만 오래된 JVM에서 실패할 수 있습니다. Toolchain과 타깃 검증을 CI에서 실행합니다. JDK 25 바이트코드를 생성하려면 Kotlin 2.3 이상이 필요합니다. 실행 예제는 Gradle 9.1과 공식 지원 범위가 겹치는 Kotlin 2.3.21을 사용합니다. JDK 설치만으로 컴파일러의 지원 타깃이 늘어나지는 않습니다.",
+      "반환값의 부재, 컬렉션 소유권, 예외 종류를 경계 계약으로 정합니다. 한쪽에서만 방어적으로 검사하면 다른 호출자가 규칙을 우회할 수 있습니다. 핵심 불변식은 공통 구현에서 보호합니다."
+    ],
+    "examples": [
+      {
+        "label": "Kotlin",
+        "code": "// OrderApi.kt\nclass OrderApi {\n    fun codes(): List<String> = listOf(\"NEW\", \"PAID\")\n}"
+      },
+      {
+        "label": "Java",
+        "code": "var api = new OrderApi();\nvar editable = new java.util.ArrayList<>(api.codes());\neditable.add(\"LOCAL\");"
+      }
+    ],
+    "explanation": "호출자는 반환 목록의 변경 가능성에 기대지 않고 자신의 변경 가능한 복사본을 만듭니다. 실제 API 계약은 목록의 원소와 부재 규칙까지 포함해야 합니다.",
+    "exercise": {
+      "steps": [
+        "Java 테스트와 Kotlin 테스트에서 같은 공개 API를 호출한다.",
+        "컴파일 타깃을 맞추고 배포할 JDK에서 패키지 실행 테스트를 수행한다."
+      ],
+      "expected": "언어를 바꾸어 호출해도 반환값·예외·컬렉션 변경 정책이 일관되어야 합니다."
+    },
+    "pitfalls": [
+      "서로 다른 언어의 소스가 동일한 패키지·클래스 이름을 만들면 충돌합니다. 생성되는 JVM 이름까지 고려해 공개 API를 설계합니다."
+    ],
+    "quiz": [
+      {
+        "question": "개발 JDK에서 실행됐는데 운영에서 실패할 수 있는 이유는 무엇인가요?",
+        "answer": "운영 JVM이 클래스 파일 버전이나 사용한 API를 지원하지 않을 수 있습니다. 의존 라이브러리도 포함한 실제 배포 산출물을 운영과 같은 JDK에서 검증해야 합니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://kotlinlang.org/docs/gradle-configure-project.html"
+      },
+      {
+        "title": "Kotlin 2.3의 Java 25 지원",
+        "url": "https://kotlinlang.org/docs/whatsnew23.html"
+      },
+      {
+        "title": "Kotlin Gradle 플러그인 호환성과 JVM 타깃",
+        "url": "https://kotlinlang.org/docs/gradle-configure-project.html"
+      }
+    ]
+  }
+]

@@ -1,0 +1,298 @@
+[
+  {
+    "id": "request-flow",
+    "goal": "요청 처리의 각 지점에서 어떤 오류를 다루는지 구분한다.",
+    "intro": "인증 필터에서 거절된 요청은 Controller에 도착하지 않습니다. 반대로 JSON 변환 오류는 업무 메서드를 호출하기 전에 발생할 수 있습니다.",
+    "sections": [
+      "Servlet 컨테이너가 요청을 받아 Filter 체인을 거쳐 Servlet으로 전달합니다. 필터는 요청·응답 래핑, 인증 등 서블릿 앞뒤의 공통 처리에 적합합니다. Filter 순서는 실제 호출 흐름에 영향을 줍니다.",
+      "DispatcherServlet은 HandlerMapping으로 처리 대상을 찾고 HandlerAdapter로 실행 방식을 연결합니다. Controller는 전체 HTTP 서버가 아니라 선택된 처리 대상의 하나입니다.",
+      "ArgumentResolver는 경로·헤더·인증 사용자 등 매개변수를 준비하고 MessageConverter는 HTTP 본문과 객체를 변환합니다. @RequestBody DTO의 JSON 변환·검증은 메서드 진입 전에 실패할 수 있습니다.",
+      "Interceptor는 MVC 핸들러 주변의 전후 처리를 담당합니다. HandlerExceptionResolver는 MVC 내부 예외 해결 흐름에 참여합니다. 필터에서 발생한 오류를 ControllerAdvice가 항상 처리해 준다고 가정하지 않습니다."
+    ],
+    "examples": [
+      {
+        "label": "텍스트",
+        "code": "HTTP 요청\n  → Servlet 컨테이너\n  → Filter 체인\n  → DispatcherServlet\n  → HandlerMapping / HandlerAdapter\n  → 인자 변환·검증\n  → Controller → Service\n  → 반환값 변환 → HTTP 응답"
+      }
+    ],
+    "explanation": "단순한 동기 요청 흐름입니다. 비동기 디스패치나 오류 디스패치는 재진입과 콜백 시점이 달라질 수 있어 별도 관찰이 필요합니다.",
+    "exercise": {
+      "steps": [
+        "필터·인터셉터·Controller에 요청 ID와 단계 로그를 남긴다.",
+        "정상 JSON·문법 오류 JSON·미인증 요청의 마지막 도달 지점을 비교한다."
+      ],
+      "expected": "오류 종류마다 어느 계층에서 처리해야 하는지 호출 로그로 설명해야 합니다."
+    },
+    "pitfalls": [
+      "본문을 로깅하려고 InputStream을 먼저 읽으면 뒤의 변환기가 빈 본문을 받을 수 있습니다. 재사용 가능한 래퍼와 크기·민감정보 제한을 고려합니다."
+    ],
+    "quiz": [
+      {
+        "question": "DTO 변환 실패 때 Controller의 첫 로그가 없는 이유는 무엇인가요?",
+        "answer": "메서드 인자를 만드는 과정에서 실패했기 때문입니다. Controller가 호출되기 전에 MVC 예외 처리 경로로 이동할 수 있습니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-servlet.html"
+      }
+    ]
+  },
+  {
+    "id": "controllers",
+    "goal": "입력 위치와 DTO의 책임을 명시한 API를 작성한다.",
+    "intro": "주문 ID는 경로에, 페이지 조건은 쿼리에, 새 주문 내용은 본문에 담는 식으로 각 값의 의미를 호출 계약과 맞춥니다.",
+    "sections": [
+      "@GetMapping·@PostMapping 등으로 경로와 메서드를 연결합니다. @PathVariable·@RequestParam·@RequestHeader는 다른 입력 위치입니다. 이름과 필수 여부·기본값을 명시하면 호출 오류를 예측하기 쉽습니다.",
+      "@RequestBody는 본문을 변환기를 통해 객체로 읽습니다. Content-Type과 DTO 형태가 맞아야 합니다. JSON 필드가 누락·null·잘못된 타입인 경우를 각각 테스트합니다.",
+      "요청 DTO는 외부 계약이고 도메인 객체는 업무 규칙을 지킵니다. 요청에 있는 사용자 ID를 그대로 신뢰하지 않고 인증 주체와 인가 정책을 사용합니다. 엔티티의 내부 ID·권한 필드를 입력으로 무분별하게 열지 않습니다.",
+      "Java record와 Kotlin data class는 DTO를 간결하게 표현할 수 있습니다. 기본값·null 가능성·생성자 바인딩은 직렬화 설정에 영향을 받으므로 두 언어의 실제 JSON 계약을 같은 테스트로 확인합니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "record CreateOrderRequest(long productId, int quantity) {}\nrecord OrderResponse(long id) {}\n@RestController\n@RequestMapping(\"/orders\")\nclass OrderController {\n    private final OrderService service;\n    OrderController(OrderService service) { this.service = service; }\n    @PostMapping\n    OrderResponse create(@RequestBody CreateOrderRequest request) {\n        return new OrderResponse(service.place(request.productId(), request.quantity()));\n    }\n}"
+      },
+      {
+        "label": "Kotlin",
+        "code": "data class CreateOrderRequest(val productId: Long, val quantity: Int)\ndata class OrderResponse(val id: Long)\n@RestController\n@RequestMapping(\"/orders\")\nclass OrderController(private val service: OrderService) {\n    @PostMapping\n    fun create(@RequestBody request: CreateOrderRequest) =\n        OrderResponse(service.place(request.productId, request.quantity))\n}"
+      }
+    ],
+    "explanation": "입력 매핑만 보는 코드이며 OrderService와 Spring import가 필요합니다. 다음 단원에서 검증과 201·Location 응답, 보안 단계에서 인증 주체를 추가합니다.",
+    "exercise": {
+      "steps": [
+        "정상 요청·누락 필드·잘못된 타입을 전송해 현재 응답을 기록한다.",
+        "DTO에서 도메인 명령으로 변환하는 경계를 만들어 엔티티를 직접 받지 않게 한다."
+      ],
+      "expected": "HTTP 표현과 업무 객체가 분리되고 입력 오류가 명확한 4xx 계약으로 처리되어야 합니다."
+    },
+    "pitfalls": [
+      "Java의 primitive 필드가 누락될 때와 Kotlin non-null 생성자 값이 누락될 때 동작이 다를 수 있습니다. 추측하지 말고 직렬화 설정으로 테스트합니다."
+    ],
+    "quiz": [
+      {
+        "question": "클라이언트가 보낸 memberId를 주문 소유자로 바로 사용해도 되나요?",
+        "answer": "다른 사용자의 ID를 보낼 수 있습니다. 인증된 주체를 기준으로 소유자를 정하거나 해당 주체가 지정한 회원을 대리할 권한을 검증해야 합니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-methods.html"
+      }
+    ]
+  },
+  {
+    "id": "validation",
+    "goal": "형식 검증과 업무 규칙을 각 경계에서 적용한다.",
+    "intro": "수량 0은 요청 형식의 유효성 문제이고 남은 재고보다 많은 수량은 현재 업무 상태의 문제입니다. 두 검증이 필요한 시점과 실패 응답을 구분합니다.",
+    "sections": [
+      "Bean Validation의 @NotNull·@NotBlank·@Min·@Positive 등은 값의 제약을 표현합니다. @NotBlank는 문자열을 대상으로 하며 @Min만으로 null을 거절하지는 않습니다. 필요한 제약을 타입에 맞게 조합합니다.",
+      "@Valid는 객체의 연쇄 검증을, @Validated는 검증 그룹 등 Spring 지원을 사용할 때 쓰입니다. MVC 인자 검증과 메서드 검증의 적용 방식은 선언 위치·버전에 따라 다르므로 발생 예외도 확인합니다.",
+      "Kotlin 생성자 프로퍼티의 검증 애너테이션은 @field:나 @get: 등 의도를 명시합니다. null 변환 실패와 검증 제약 실패는 서로 다른 경로일 수 있습니다. 오류 응답에서 일관된 외부 계약으로 매핑합니다.",
+      "재고·권한·할인 적용 가능 여부는 현재 상태와 관련되어 서비스·도메인에서 검증합니다. Controller에서 한 번 조회한 재고 값은 저장 시점까지 유효하지 않을 수 있어 트랜잭션·조건부 갱신과 연결합니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "record CreateOrderRequest(\n    @jakarta.validation.constraints.Positive long productId,\n    @jakarta.validation.constraints.Min(1) int quantity\n) {}"
+      },
+      {
+        "label": "Kotlin",
+        "code": "data class CreateOrderRequest(\n    @field:Positive val productId: Long,\n    @field:Min(1) val quantity: Int\n)\n// Controller: fun create(@Valid @RequestBody request: CreateOrderRequest)"
+      }
+    ],
+    "explanation": "검증 구현체를 포함하는 Boot validation 의존성이 필요합니다. Kotlin 예제에는 jakarta.validation.constraints import와 @Valid import를 추가합니다.",
+    "exercise": {
+      "steps": [
+        "수량 -1·0·1에 대한 요청 테스트를 작성한다.",
+        "유효한 수량이지만 재고 부족인 요청을 별도 업무 오류로 검증한다."
+      ],
+      "expected": "필드 오류는 필드 이름과 안정적인 코드를 제공하고 품절과 다른 오류로 구분되어야 합니다."
+    },
+    "pitfalls": [
+      "@Valid가 붙었다고 DB의 현재 상태나 리소스 소유권까지 검사되는 것은 아닙니다."
+    ],
+    "quiz": [
+      {
+        "question": "Controller의 수량 검사만으로 음수 재고를 막을 수 있나요?",
+        "answer": "양수 입력을 보장할 수는 있지만 동시 주문의 경쟁까지 막지는 못합니다. DB 갱신 단계에서 재고 조건을 원자적으로 검사해야 합니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-validation.html"
+      }
+    ]
+  },
+  {
+    "id": "errors",
+    "goal": "업무 오류와 내부 오류를 일관된 응답으로 변환한다.",
+    "intro": "같은 품절 오류가 어떤 Controller에서는 500, 다른 곳에서는 200으로 나가면 호출자가 안정적으로 처리하기 어렵습니다.",
+    "sections": [
+      "@ExceptionHandler는 해당 예외의 응답을 만들고 @RestControllerAdvice는 여러 Controller에 공통 적용할 수 있습니다. 너무 넓은 Exception 처리 하나로 모든 실패를 같은 메시지로 덮지 않습니다.",
+      "ProblemDetail은 HTTP 상태와 오류 설명을 구조화합니다. 확장 속성으로 안정적인 업무 코드를 제공할 수 있습니다. title·detail의 자연어가 바뀌어도 클라이언트 분기가 깨지지 않도록 코드 계약을 둡니다.",
+      "품절·중복·존재하지 않음 등 업무 예외의 상태 코드는 API 의미에 맞게 정합니다. 401·403은 보안 필터의 EntryPoint·AccessDeniedHandler와도 일관되게 맞춰야 합니다.",
+      "응답에는 사용자에게 필요한 정보만 담고 stack trace·SQL·토큰은 노출하지 않습니다. 서버 로그에는 요청 상관관계 ID와 원인 예외를 남겨 진단할 수 있게 합니다. 같은 실패를 여러 계층에서 중복 로깅하지 않습니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "@RestControllerAdvice\nclass ApiErrors {\n    @ExceptionHandler(OutOfStock.class)\n    ProblemDetail soldOut(OutOfStock error) {\n        var problem = ProblemDetail.forStatusAndDetail(\n            HttpStatus.CONFLICT, \"요청한 수량을 확보할 수 없습니다.\");\n        problem.setTitle(\"재고 부족\");\n        problem.setProperty(\"code\", \"OUT_OF_STOCK\");\n        return problem;\n    }\n}"
+      }
+    ],
+    "explanation": "OutOfStock은 앱의 업무 예외이며 Spring HTTP 타입과 애너테이션 import가 필요합니다. 예외 메시지를 그대로 외부에 내보내지 않고 공개 문구를 정했습니다.",
+    "exercise": {
+      "steps": [
+        "품절·검증 실패·예상하지 못한 오류의 상태와 JSON 스키마를 테스트한다.",
+        "응답에 SQL·클래스 경로·비밀값이 포함되지 않는지 확인한다."
+      ],
+      "expected": "각 실패가 정의된 상태·코드로 나오고 내부 원인은 상관관계 ID로 서버 로그에서 찾을 수 있어야 합니다."
+    },
+    "pitfalls": [
+      "예외를 catch하고 null을 반환하면 실패가 200이나 다른 변환 오류로 바뀔 수 있습니다. 실패 계약을 명시합니다."
+    ],
+    "quiz": [
+      {
+        "question": "에러 응답의 자연어 문구로 클라이언트가 분기하면 왜 취약한가요?",
+        "answer": "문구는 번역이나 표현 개선으로 바뀔 수 있습니다. 안정적인 코드와 필드 스키마를 계약으로 제공하는 편이 안전합니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-ann-rest-exceptions.html"
+      }
+    ]
+  },
+  {
+    "id": "serialization",
+    "goal": "HTTP 응답의 상태·헤더·JSON을 하나의 계약으로 검증한다.",
+    "intro": "Java 객체가 같아도 직렬화 설정이 달라지면 날짜와 enum·null 표현이 바뀔 수 있습니다. 응답 테스트는 객체 내부 값만 검사해서는 부족합니다.",
+    "sections": [
+      "Jackson은 객체와 JSON 사이를 변환합니다. Boot가 구성한 매퍼와 직접 new로 만든 매퍼는 모듈·설정이 다를 수 있습니다. Boot 4의 Jackson 3 API와 이전 예제의 패키지를 구분합니다.",
+      "시간은 시점·날짜의 의미에 맞는 타입과 문자열 형식을 정합니다. enum 이름을 외부 코드로 그대로 쓸지, null 필드를 포함할지 계약을 정합니다. 알 수 없는 enum 입력과 필드 추가도 검증합니다.",
+      "ResponseEntity는 상태·헤더·본문을 함께 제어합니다. 생성 응답에는 201과 Location, 본문 없는 성공에는 204처럼 의미를 맞춥니다. Content-Type과 캐시 헤더도 응답의 일부입니다.",
+      "엔티티를 직접 반환하면 지연 로딩·양방향 참조·민감 필드가 직렬화에 섞일 수 있습니다. 트랜잭션 안에서 필요한 데이터를 DTO로 변환하고 공개 스키마를 제한합니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "var body = new OrderResponse(orderId);\nreturn ResponseEntity\n    .created(java.net.URI.create(\"/orders/\" + orderId))\n    .body(body);"
+      },
+      {
+        "label": "Kotlin",
+        "code": "return ResponseEntity\n    .created(URI.create(\"/orders/$orderId\"))\n    .body(OrderResponse(orderId))"
+      }
+    ],
+    "explanation": "서비스에서 얻은 orderId로 생성 위치를 만듭니다. 외부 입력 문자열을 검증 없이 URL이나 헤더에 이어 붙이지 않습니다.",
+    "exercise": {
+      "steps": [
+        "201·Location·Content-Type·JSON id를 함께 검증한다.",
+        "날짜·null·enum 값을 포함한 응답을 저장해 버전 변경 시 회귀를 확인한다."
+      ],
+      "expected": "Java와 Kotlin DTO가 같은 공개 응답 계약을 만족해야 합니다."
+    },
+    "pitfalls": [
+      "toString 결과를 JSON 응답으로 사용하면 올바른 스키마와 이스케이프가 보장되지 않습니다. 변환기를 사용합니다."
+    ],
+    "quiz": [
+      {
+        "question": "엔티티에 @JsonIgnore를 붙이는 것만으로 DTO를 대체할 수 있나요?",
+        "answer": "일부 필드를 숨길 수 있지만 영속 모델과 외부 계약의 결합은 남습니다. 연관관계 로딩·버전 변경·권한별 응답 요구를 고려해 DTO 경계를 정하는 편이 좋습니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-methods/responseentity.html"
+      }
+    ]
+  },
+  {
+    "id": "web-features",
+    "goal": "파일·장기 연결·외부 호출의 자원 제한을 설정한다.",
+    "intro": "일반 JSON API보다 파일 업로드와 SSE는 연결·메모리를 오래 사용할 수 있습니다. 입력 크기와 처리 수명을 명시합니다.",
+    "sections": [
+      "Multipart 업로드는 요청 크기·파일 크기·허용 형식을 제한합니다. 사용자가 보낸 파일 이름을 서버 경로로 그대로 사용하지 않습니다. 안전한 저장 이름과 디렉터리 경계, 접근 권한을 정합니다.",
+      "다운로드는 큰 파일 전체를 메모리에 읽기보다 스트리밍을 고려합니다. 스트림과 응답의 수명이 끝날 때 자원을 닫고 Content-Disposition 파일 이름을 안전하게 구성합니다.",
+      "비동기 MVC는 Servlet 요청 처리 스레드를 돌려줄 수 있지만 업무 작업의 실행 자원은 여전히 필요합니다. SSE는 서버에서 클라이언트로 이벤트를 보냅니다. 연결 종료·타임아웃·재연결·이벤트 ID 정책을 정합니다.",
+      "외부 HTTP 호출에는 연결·응답·전체 시간 예산을 둡니다. 요청마다 새 클라이언트를 생성하지 않고 연결 풀과 자원 수명을 관리합니다. 블로킹 호출을 비동기 반환 타입으로 감쌌다고 비용이 사라지지는 않습니다."
+    ],
+    "examples": [
+      {
+        "label": "설정",
+        "code": "spring.servlet.multipart.max-file-size=5MB\nspring.servlet.multipart.max-request-size=6MB"
+      },
+      {
+        "label": "HTTP",
+        "code": "Content-Type: text/event-stream\n\nevent: order-status\nid: 7-2\ndata: {\"orderId\":7,\"status\":\"PAID\"}\n"
+      }
+    ],
+    "explanation": "SSE의 이벤트는 빈 줄로 구분됩니다. 예시는 wire format을 보여 주며 실제 서버 구현은 연결 해제 콜백과 재연결 정책을 포함해야 합니다.",
+    "exercise": {
+      "steps": [
+        "설정 한도를 넘는 파일을 보내 거절 여부와 오류 응답을 확인한다.",
+        "SSE 클라이언트를 끊었다 다시 연결했을 때 이벤트 중복·누락 정책을 정의한다."
+      ],
+      "expected": "큰 입력과 끊어진 연결이 자원을 무한히 점유하지 않고 정해진 오류·복구 경로를 따라야 합니다."
+    },
+    "pitfalls": [
+      "업로드 파일의 확장자만으로 안전한 내용을 보장할 수 없습니다. 저장 위치·실행 가능성·콘텐츠 검증을 함께 제한합니다."
+    ],
+    "quiz": [
+      {
+        "question": "SSE는 WebSocket과 무엇이 다른가요?",
+        "answer": "SSE는 HTTP 기반 서버→클라이언트 이벤트 전달에 맞고 WebSocket은 양방향 메시지 채널입니다. 필요한 통신 방향과 운영 제약에 따라 선택합니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-ann-async.html"
+      }
+    ]
+  },
+  {
+    "id": "mvc-contract",
+    "goal": "실제 MVC 경로를 통과하는 테스트로 API 문서를 검증한다.",
+    "intro": "서비스 메서드 테스트만으로는 JSON 바인딩·검증·오류 응답을 알 수 없습니다. HTTP 표현이 들어오고 나가는 경계도 테스트합니다.",
+    "sections": [
+      "OpenAPI는 API 스키마를 표현하고 REST Docs는 테스트에서 얻은 요청·응답을 문서화하는 흐름에 강점이 있습니다. 어느 도구든 누락된 실패 시나리오를 자동으로 만들어 주지는 않습니다.",
+      "페이지 크기·정렬·다음 페이지 정보와 오류 필드의 이름·타입을 고정합니다. 성공 예제만 문서화하면 호출자가 품절·권한 실패를 처리하기 어렵습니다. 계약 변경은 소비자 영향과 함께 리뷰합니다.",
+      "MockMvc는 실제 서버 포트 없이 MVC 요청 처리 흐름을 테스트합니다. 실제 TCP·프록시·TLS를 검증하는 것은 아니므로 네트워크 경계에는 별도의 통합 검증이 필요합니다.",
+      "필터·인터셉터 로그는 경로를 찾는 데 유용하지만 민감한 본문 전체를 기록하지 않습니다. 테스트에 적용된 필터와 운영 구성이 다르면 인증·인가 결과도 달라질 수 있습니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "mockMvc.perform(post(\"/orders\")\n        .contentType(MediaType.APPLICATION_JSON)\n        .content(\"{\\\"productId\\\":1,\\\"quantity\\\":0}\"))\n    .andExpect(status().isBadRequest());"
+      }
+    ],
+    "explanation": "MockMvc가 주입된 테스트 메서드의 일부입니다. 보안을 적용한 앱에서는 허용된 사용자와 유효한 CSRF 토큰 등을 제공해 입력 검증 경로까지 도달하게 합니다.",
+    "exercise": {
+      "steps": [
+        "정상 생성·입력 오류·품절·권한 오류를 각각 요청 테스트로 만든다.",
+        "각 테스트의 응답을 API 문서 예제와 비교한다."
+      ],
+      "expected": "문서화한 상태·헤더·본문 필드가 테스트 결과와 일치해야 합니다."
+    },
+    "pitfalls": [
+      "보안 필터를 전부 끈 테스트만 있으면 배포 후 401·403·CSRF 문제를 놓칩니다. 목적별 테스트 범위를 명확히 나눕니다."
+    ],
+    "quiz": [
+      {
+        "question": "MockMvc 테스트가 통과해도 실제 서버 테스트가 필요한 이유는 무엇인가요?",
+        "answer": "네트워크, 컨테이너 설정, 프록시 헤더, 실제 포트와 자원 제한은 별도 경계이기 때문입니다. MVC 계약과 배포 경계를 나누어 검증합니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.spring.io/spring-framework/reference/testing/mockmvc.html"
+      }
+    ]
+  }
+]

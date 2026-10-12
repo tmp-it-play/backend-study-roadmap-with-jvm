@@ -4,11 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1",
-    "build": "npm run check:content && next build",
+    "build": "npm run check:content && npm run package:labs && next build",
     "start": "node scripts/serve.mjs",
     "typecheck": "tsc --noEmit",
-    "docs": "node scripts/generate-roadmap.mjs",
-    "check:content": "node scripts/check-content.mjs"
+    "check:content": "node scripts/check-content.mjs",
+    "predev": "npm run package:labs",
+    "package:labs": "node scripts/package-labs.mjs",
+    "test:practice": "node --experimental-strip-types --test scripts/practice-models.test.mjs"
   },
   "dependencies": {
     "@fontsource/do-hyeon": "^5.3.0",

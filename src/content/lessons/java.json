@@ -1,0 +1,326 @@
+[
+  {
+    "id": "values-types",
+    "goal": "값의 타입과 연산 순서가 계산 결과를 바꾸는 상황을 찾는다.",
+    "intro": "주문 수량은 정수이고 할인율은 소수입니다. 저장할 값의 범위와 반올림 규칙을 결정하지 않으면 문법이 맞아도 계산은 틀릴 수 있습니다.",
+    "sections": [
+      "int·long 같은 기본형은 값 자체를 표현하며 참조형 변수는 객체를 가리킵니다. Integer는 null을 담을 수 있지만 언박싱하면 NullPointerException이 날 수 있습니다. 컬렉션의 제네릭 인자에는 참조형을 사용합니다.",
+      "지역 변수는 사용 전에 초기화해야 합니다. 작은 정수형으로 변환하면 범위를 벗어난 값이 잘릴 수 있습니다. 금액은 최소 화폐 단위의 long이나 명시적 반올림 규칙을 둔 BigDecimal로 표현합니다.",
+      "정수끼리 나누면 정수 연산이 먼저 끝납니다. 결과를 double에 담아도 이미 버린 소수 부분은 돌아오지 않습니다. switch 표현식은 분기 결과를 값으로 반환하므로 상태별 계산을 한곳에 모으기 좋습니다.",
+      "String은 불변이지만 String[]의 원소는 바꿀 수 있습니다. 배열 길이는 생성 뒤 고정됩니다. 외부 입력은 null과 빈 문자열을 구분하고, 참조를 사용하기 전에 유효성을 확인합니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "int quantity = 3;\nlong unitPrice = 1200L;\nlong total = Math.multiplyExact(unitPrice, quantity);\ndouble ratio = 1 / 2.0;\nSystem.out.println(total); // 3600\nSystem.out.println(ratio); // 0.5"
+      }
+    ],
+    "explanation": "multiplyExact는 long 범위를 넘으면 예외로 알립니다. 실제 금액 계산에서는 통화와 허용 범위도 함께 검증합니다.",
+    "exercise": {
+      "steps": [
+        "1 / 2와 1 / 2.0의 결과를 비교한다.",
+        "수량 0·음수·최댓값에 대해 가격 계산이 허용하거나 거절할 조건을 테스트한다."
+      ],
+      "expected": "정수 나눗셈, null 언박싱, 오버플로의 실패 이유를 서로 구분할 수 있어야 합니다."
+    },
+    "pitfalls": [
+      "new BigDecimal(0.1)은 이진 부동소수 값의 오차를 담을 수 있습니다. 소수 문자열이나 BigDecimal.valueOf 사용 의도를 확인합니다."
+    ],
+    "quiz": [
+      {
+        "question": "int 두 값을 곱한 뒤 long에 담으면 오버플로를 피하나요?",
+        "answer": "곱셈이 int로 먼저 수행되면 이미 오버플로가 발생합니다. 피연산자를 long으로 올리거나 Math.multiplyExact로 범위를 검사해야 합니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html"
+      }
+    ]
+  },
+  {
+    "id": "objects",
+    "goal": "상태 변경 규칙을 객체 안에 두고 의존성을 생성자로 전달한다.",
+    "intro": "재고 수량을 누구나 직접 바꾸게 하면 음수 방지 규칙이 여러 서비스에 흩어집니다. 객체가 허용하는 동작을 공개하면 규칙을 한곳에서 지킬 수 있습니다.",
+    "sections": [
+      "생성자는 객체가 처음부터 유효하도록 검사합니다. 필드는 private으로 숨기고 의미 있는 메서드를 공개합니다. getter와 setter를 모두 만드는 것만으로 캡슐화가 이루어지지는 않습니다.",
+      "인터페이스는 호출자가 기대하는 계약을 표현하고 추상 클래스는 상태나 구현을 공유할 수 있습니다. 결제 수단처럼 구현이 교체되는 경계에는 작은 인터페이스를 두는 편이 테스트에 유용합니다.",
+      "상속은 하위 객체가 상위 계약을 지켜야 하는 관계입니다. 코드 일부를 재사용하려고 상속하면 변경이 전파될 수 있습니다. 필요한 동작을 다른 객체에 맡기는 합성으로 결합 범위를 줄일 수 있습니다.",
+      "static 필드는 인스턴스별 값이 아니라 클래스에 속합니다. final 참조는 재할당을 막지만 가리키는 객체의 변경까지 막지 않습니다. 요청마다 달라지는 사용자 정보는 공유 static 필드에 두지 않습니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "final class Stock {\n    private int remaining;\n    Stock(int initial) {\n        if (initial < 0) throw new IllegalArgumentException();\n        remaining = initial;\n    }\n    void decrease(int quantity) {\n        if (quantity <= 0 || quantity > remaining)\n            throw new IllegalArgumentException();\n        remaining -= quantity;\n    }\n    int remaining() { return remaining; }\n}"
+      }
+    ],
+    "explanation": "이 객체는 단일 스레드의 도메인 규칙 예제입니다. 동시에 호출할 때의 원자성은 동시성 단계에서 별도로 보장합니다.",
+    "exercise": {
+      "steps": [
+        "Stock(3)에서 2개 차감 뒤 남은 값이 1인지 확인한다.",
+        "0·음수·잔량 초과 차감은 예외를 내고 상태를 유지하는지 테스트한다."
+      ],
+      "expected": "모든 공개 변경 메서드를 거친 뒤 remaining >= 0 조건이 유지되어야 합니다."
+    },
+    "pitfalls": [
+      "검사와 상태 변경 사이에 외부에서 필드를 수정할 수 있으면 규칙이 깨집니다. 외부에 변경 가능한 내부 상태를 노출하지 않습니다."
+    ],
+    "quiz": [
+      {
+        "question": "final class이면 스레드 안전한가요?",
+        "answer": "final class는 상속을 금지할 뿐입니다. 내부 가변 상태에 여러 스레드가 접근한다면 동기화나 상태 격리가 필요합니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://dev.java/learn/classes-objects/"
+      }
+    ]
+  },
+  {
+    "id": "equality",
+    "goal": "동일성·동등성을 구분하고 안전한 Map 키를 설계한다.",
+    "intro": "주문 번호가 같은 두 객체를 같은 주문으로 볼지 결정해야 Set의 중복 제거와 Map의 조회 결과를 예측할 수 있습니다.",
+    "sections": [
+      "참조형의 ==는 같은 객체를 가리키는지 비교합니다. equals는 타입이 정의한 동등성 규칙입니다. String을 ==로 비교하면 문자열 풀 때문에 일부 입력에서만 맞는 것처럼 보일 수 있습니다.",
+      "equals가 true인 두 객체는 hashCode도 같아야 합니다. 반대는 성립하지 않아 해시 충돌이 가능합니다. 해시 컬렉션은 해시로 후보를 좁힌 뒤 equals로 비교하므로 두 메서드를 함께 설계합니다.",
+      "키의 해시 계산에 쓰이는 필드를 삽입 뒤 바꾸면 조회할 버킷이 달라질 수 있습니다. 객체는 Map 안에 남아 있는데 get이 찾지 못하는 상황입니다. 안정적인 식별자나 불변 값 객체를 키로 사용합니다.",
+      "불변 객체는 내부의 가변 자료까지 보호해야 합니다. 입력 컬렉션을 복사하고 변경 가능한 내부 참조를 그대로 반환하지 않습니다. List.copyOf도 원소 객체까지 깊게 복사하지는 않습니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "record OrderId(long value) {}\nvar first = new OrderId(7);\nvar second = new OrderId(7);\nvar orders = new java.util.HashMap<OrderId, String>();\norders.put(first, \"PAID\");\nSystem.out.println(first == second); // false\nSystem.out.println(orders.get(second)); // PAID"
+      }
+    ],
+    "explanation": "record가 생성하는 동등성은 컴포넌트 값에 기반합니다. 이 예제의 long 식별자는 변경할 수 없어 키로 쓰기 쉽습니다.",
+    "exercise": {
+      "steps": [
+        "동등한 OrderId 두 개를 HashSet에 넣고 크기를 확인한다.",
+        "가변 키의 필드를 바꾸면 조회가 실패할 수 있는 예제를 만든 뒤 불변 키로 고친다."
+      ],
+      "expected": "동등한 키는 같은 값을 조회하고 키를 생성한 뒤 비교에 사용되는 값은 변하지 않아야 합니다."
+    },
+    "pitfalls": [
+      "배열은 일반 equals로 원소를 비교하지 않습니다. 배열 내용을 비교하려면 Arrays.equals나 필요한 깊이의 비교를 선택합니다."
+    ],
+    "quiz": [
+      {
+        "question": "해시가 같으면 같은 주문인가요?",
+        "answer": "아닙니다. 해시는 후보를 분류하는 값이며 충돌할 수 있습니다. 최종 동등성은 equals 계약으로 판단합니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html"
+      }
+    ]
+  },
+  {
+    "id": "collections-generics",
+    "goal": "자료의 성질에 맞는 컬렉션과 타입 경계를 선택한다.",
+    "intro": "주문 항목에는 순서가 있고, 허용된 역할에는 중복이 필요 없으며, 상품 번호로 빠르게 찾으려면 키가 필요합니다.",
+    "sections": [
+      "List는 순서와 중복, Set은 중복 배제, Map은 키와 값의 관계를 표현합니다. ArrayList는 인덱스 접근에 유리하고 HashMap은 일반적으로 키 조회에 적합하지만 정렬 순서를 보장하지 않습니다.",
+      "제네릭은 컴파일 시 타입 사용을 제한합니다. 대부분의 타입 인자는 실행 시 소거되므로 List<String>인지 instanceof로 완전히 판별할 수 없습니다. raw type을 섞으면 잘못된 값이 들어가 뒤늦게 캐스팅 오류가 납니다.",
+      "? extends T는 T로 읽는 생산자에, ? super T는 T를 넣는 소비자에 사용합니다. Number의 하위 타입 리스트에는 어떤 구체 타입이 들어 있는지 모르므로 임의의 Integer를 추가할 수 없습니다.",
+      "Comparable은 타입의 기본 순서를, Comparator는 상황별 순서를 제공합니다. TreeSet에서는 비교 결과 0이 중복 판단에 영향을 줍니다. equals와 정렬 기준이 어긋날 때의 의미를 검토합니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "static double sum(java.util.List<? extends Number> values) {\n    double result = 0;\n    for (Number value : values) result += value.doubleValue();\n    return result;\n}\n// sum(List.of(1, 2));      -> 3.0\n// sum(List.of(1.5, 2.5));  -> 4.0"
+      }
+    ],
+    "explanation": "Number로 읽는 데 필요한 범위만 선언했습니다. 금액 계산용 합계가 아니라 제네릭 읽기 규칙을 보여 주는 예제입니다.",
+    "exercise": {
+      "steps": [
+        "상품 목록을 가격 오름차순·ID 오름차순으로 정렬해 같은 가격에도 순서를 고정한다.",
+        "List<Integer>와 List<Double>를 sum에 전달하고 List<String>은 컴파일이 거절하는지 확인한다."
+      ],
+      "expected": "타입에 맞지 않는 입력은 컴파일 단계에서 막고, 같은 입력의 정렬 결과는 매번 같아야 합니다."
+    },
+    "pitfalls": [
+      "조회가 빠르다는 이유만으로 HashMap을 동시 요청에서 공유하면 안전하지 않습니다. 스레드 안전성과 복합 연산의 원자성은 별도 문제입니다."
+    ],
+    "quiz": [
+      {
+        "question": "List<Integer>를 List<Number>에 대입할 수 없는 이유는 무엇인가요?",
+        "answer": "허용하면 Number 리스트를 통해 Double을 추가해 Integer 리스트의 계약을 깨뜨릴 수 있습니다. 읽기 용도라면 ? extends Number로 범위를 표현합니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://dev.java/learn/generics/"
+      }
+    ]
+  },
+  {
+    "id": "exceptions-io",
+    "goal": "실패 원인을 보존하고 파일·시간 자원을 명시적으로 다룬다.",
+    "intro": "주문 파일을 읽다가 실패했을 때 호출자는 파일이 없는지, 형식이 틀렸는지 구분할 수 있어야 합니다. 오류 메시지만 남기고 원인을 버리면 진단이 어려워집니다.",
+    "sections": [
+      "checked 예외는 선언하거나 처리해야 하고 RuntimeException 계열은 그 의무가 없습니다. 복구 가능한 실패를 무조건 checked로, 프로그래밍 오류를 무조건 무시하는 식으로 규칙을 단순화하지 않습니다.",
+      "계층의 의미에 맞는 예외로 바꿀 때 원인 예외를 cause로 전달합니다. catch한 뒤 성공값을 반환하면 호출자가 실패를 성공으로 오해합니다. 로그와 전파 책임도 중복되지 않게 정합니다.",
+      "try-with-resources는 AutoCloseable 자원을 블록 종료 시 닫습니다. 본문과 close가 모두 실패하면 close의 예외가 suppressed로 보존될 수 있습니다. finally에서 새 예외를 던져 원인을 가리지 않습니다.",
+      "텍스트는 문자 인코딩을 명시하고 Path로 경로를 다룹니다. Instant는 시점, LocalDate는 날짜, ZonedDateTime은 시간대가 있는 날짜·시간입니다. 서버의 기본 시간대에 중요한 업무 규칙을 맡기지 않습니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "try (var reader = java.nio.file.Files.newBufferedReader(\n        java.nio.file.Path.of(\"orders.csv\"),\n        java.nio.charset.StandardCharsets.UTF_8)) {\n    System.out.println(reader.readLine());\n} catch (java.io.IOException cause) {\n    throw new java.io.UncheckedIOException(\"주문 파일 읽기 실패\", cause);\n}"
+      }
+    ],
+    "explanation": "읽기가 성공하든 실패하든 reader는 닫힙니다. 파일 경로는 실행 디렉터리를 기준으로 해석되므로 재현 기록에 작업 위치도 남깁니다.",
+    "exercise": {
+      "steps": [
+        "UTF-8 한글 파일을 읽고 존재하지 않는 경로에서 원인 예외를 확인한다.",
+        "같은 Instant를 서울과 UTC 날짜로 변환해 날짜가 달라질 수 있는 경계를 테스트한다."
+      ],
+      "expected": "읽기 실패 시 원래 IOException이 cause로 남고 파일 핸들은 해제되어야 합니다."
+    },
+    "pitfalls": [
+      "LocalDateTime만 저장하면 어느 시간대의 시점인지 알 수 없습니다. 예약 시각과 이벤트 발생 시각의 저장 계약을 구분합니다."
+    ],
+    "quiz": [
+      {
+        "question": "예외를 잡고 null을 반환하면 어떤 문제가 생기나요?",
+        "answer": "파일이 비어 있다는 정상 결과와 읽기에 실패했다는 상태가 섞입니다. 호출자가 복구 여부를 판단할 수 있도록 실패를 명시적으로 전달해야 합니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://dev.java/learn/exceptions/"
+      }
+    ]
+  },
+  {
+    "id": "functional-java",
+    "goal": "Stream의 실행 시점과 부수 효과를 예측한다.",
+    "intro": "상품 목록에서 판매 가능한 이름만 뽑는 연산은 데이터 흐름으로 표현하기 좋습니다. 외부 상태를 바꾸는 작업이 섞이면 실행 순서와 재사용 여부를 더 주의해야 합니다.",
+    "sections": [
+      "함수형 인터페이스는 하나의 추상 메서드를 가지며 람다의 대상 타입이 됩니다. Predicate는 조건, Function은 변환, Consumer는 소비를 표현합니다. 메서드 참조는 같은 호출을 짧게 적는 방법입니다.",
+      "filter와 map은 지연된 중간 연산입니다. collect·toList·count 같은 최종 연산이 실행을 시작합니다. Stream은 한 번 소비하면 다시 쓸 수 없으며 필요한 경우 원본에서 새 Stream을 만듭니다.",
+      "map은 각 원소를 하나의 값으로 바꾸고 flatMap은 원소마다 생성한 여러 값의 흐름을 합칩니다. collect는 집계 방식을 지정합니다. toList의 결과에 추가·삭제가 가능하다고 가정하지 않습니다.",
+      "외부 ArrayList에 값을 넣는 람다는 병렬화에서 경쟁 상태를 만들 수 있습니다. Optional은 부재를 표현하지만 모든 필드나 매개변수의 기본 타입으로 강제할 필요는 없습니다. parallelStream은 공유 풀과 작업 비용을 고려해 측정 후 사용합니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "var names = java.util.List.of(\" mug \", \"\", \"pen\");\nvar cleaned = names.stream()\n    .map(String::trim)\n    .filter(s -> !s.isEmpty())\n    .toList();\nSystem.out.println(cleaned); // [mug, pen]"
+      }
+    ],
+    "explanation": "변환 결과를 반환하므로 공유된 가변 목록이 필요하지 않습니다. 람다 안에서 로그를 출력하는 경우에도 최적화로 호출 관찰을 보장할 수 없는 연산이 있으므로 진단 도구로만 사용합니다.",
+    "exercise": {
+      "steps": [
+        "주문별 상품 목록을 flatMap으로 합치고 중복 ID를 제거한다.",
+        "동일한 Stream에 최종 연산을 두 번 호출해 실패를 확인한 뒤 원본에서 다시 생성한다."
+      ],
+      "expected": "원본 컬렉션을 바꾸지 않고 원하는 결과가 생성되며 실행 시점은 최종 연산과 연결되어야 합니다."
+    },
+    "pitfalls": [
+      "peek에 결제나 DB 저장을 넣지 마세요. 결과 계산과 반드시 수행해야 하는 부수 효과의 책임을 분리합니다."
+    ],
+    "quiz": [
+      {
+        "question": "작은 목록도 parallelStream이면 빨라지나요?",
+        "answer": "작업 분할과 합치기 비용이 있어 더 느릴 수 있습니다. 블로킹 I/O나 공유 상태까지 있으면 처리량과 안정성도 나빠질 수 있어 실제 부하로 비교해야 합니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html"
+      }
+    ]
+  },
+  {
+    "id": "modern-java",
+    "goal": "record·sealed·enum으로 허용된 데이터와 상태를 표현한다.",
+    "intro": "성공에는 주문 ID가 필요하고 재고 부족에는 가능한 수량이 필요합니다. 관련 없는 nullable 필드를 한 객체에 모으면 만들 수 없는 상태도 표현됩니다.",
+    "sections": [
+      "record는 컴포넌트와 접근자·동등성 등을 제공하는 데이터 운반 타입입니다. 컴포넌트 참조는 final이지만 안쪽 컬렉션까지 불변은 아닙니다. 엔티티의 생명주기나 프록시 요구를 자동으로 만족하는 것도 아닙니다.",
+      "sealed 타입은 직접 구현할 하위 타입의 범위를 제한합니다. 이를 switch 패턴과 함께 쓰면 각 결과의 데이터에 맞춰 분기하고 누락된 경우를 컴파일러가 찾도록 만들 수 있습니다.",
+      "enum은 정해진 상태 집합을 표현합니다. NEW에서 PAID로 바뀌는 규칙은 단순 상수 선언만으로 보장되지 않으므로 전이 메서드에서 현재 상태를 검사합니다. 외부 저장에는 순번보다 안정적인 이름·코드를 사용합니다.",
+      "record는 Java 16, sealed는 17, switch 패턴 매칭은 21에서 정식 기능이 되었습니다. 새 JDK의 모든 예제를 바로 복사하지 말고 preview 여부와 컴파일 타깃을 확인합니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "sealed interface Result permits Accepted, Rejected {}\nrecord Accepted(long orderId) implements Result {}\nrecord Rejected(String reason) implements Result {}\nstatic String describe(Result result) {\n    return switch (result) {\n        case Accepted a -> \"주문 \" + a.orderId();\n        case Rejected r -> \"실패: \" + r.reason();\n    };\n}"
+      }
+    ],
+    "explanation": "Java 21 이상 정식 문법입니다. 하위 결과가 늘어나면 switch의 누락 여부를 컴파일 단계에서 확인할 수 있습니다.",
+    "exercise": {
+      "steps": [
+        "재고 부족 결과를 별도 record로 추가하고 기존 switch에서 생기는 오류를 고친다.",
+        "record가 List를 보관할 때 생성자에서 List.copyOf로 입력 참조를 분리한다."
+      ],
+      "expected": "새 결과가 추가될 때 처리 코드를 빠뜨리지 않고, 외부 목록 변경이 내부 상태에 전파되지 않아야 합니다."
+    },
+    "pitfalls": [
+      "record를 쓰면 도메인 규칙도 생성된다고 기대하지 마세요. 유효성 검사와 상태 전이는 직접 정의해야 합니다."
+    ],
+    "quiz": [
+      {
+        "question": "sealed 결과 모델이 boolean 반환보다 유용한 경우는 언제인가요?",
+        "answer": "실패 원인별로 필요한 데이터와 후속 처리가 다를 때입니다. boolean은 실패 원인의 구분을 제공하지 않으므로 추가 조회나 숨은 상태에 의존하게 됩니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.oracle.com/en/java/javase/25/language/pattern-matching.html"
+      }
+    ]
+  },
+  {
+    "id": "java-design-test",
+    "goal": "순수 주문 규칙을 작은 객체와 경계 테스트로 구현한다.",
+    "intro": "DB를 붙이기 전에 가격과 수량만으로 주문 합계를 계산해 봅니다. 네트워크 없이 검증되는 규칙이 많을수록 실패 원인을 좁히기 쉽습니다.",
+    "sections": [
+      "가격 계산, 저장, 알림은 변경 이유가 다릅니다. 계산 객체가 DB 연결까지 만들면 테스트에 인프라가 필요해집니다. 입력으로 계산할 수 있는 규칙과 외부 효과를 일으키는 작업을 나눕니다.",
+      "서비스가 필요로 하는 저장소나 Clock을 생성자로 받으면 테스트가 대역을 전달할 수 있습니다. 인터페이스는 교체할 이유가 있는 경계에 두며 모든 클래스마다 기계적으로 만들지 않습니다.",
+      "정상값 하나 외에 0, 음수, 최대 허용값, 넘침을 검사합니다. 예외 발생 뒤 객체 상태가 유지되는지도 확인합니다. 구현의 private 메서드 순서보다 공개된 동작을 검증합니다.",
+      "Price와 Quantity 같은 값은 생성할 때 규칙을 검사할 수 있습니다. 주문 상태 전이는 허용된 전이만 제공하고 금액의 통화와 반올림 규칙을 명시합니다. long을 쓰면 표현 범위와 연산의 넘침을 검사합니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "record OrderLine(long unitPrice, int quantity) {\n    OrderLine {\n        if (unitPrice < 0 || quantity <= 0)\n            throw new IllegalArgumentException(\"가격·수량 오류\");\n    }\n    long total() { return Math.multiplyExact(unitPrice, quantity); }\n}"
+      },
+      {
+        "label": "Kotlin",
+        "code": "data class OrderLine(val unitPrice: Long, val quantity: Int) {\n    init { require(unitPrice >= 0 && quantity > 0) }\n    fun total(): Long = Math.multiplyExact(unitPrice, quantity.toLong())\n}"
+      }
+    ],
+    "explanation": "두 구현은 같은 입력 계약을 가집니다. 생성자 검증으로 잘못된 객체를 막고 total은 외부 상태를 읽지 않습니다.",
+    "exercise": {
+      "steps": [
+        "1200원 3개의 합계 3600과 수량 0의 거절을 테스트한다.",
+        "금액 넘침을 재현하고 ArithmeticException을 호출자가 어떻게 처리할지 정한다."
+      ],
+      "expected": "Java와 Kotlin 구현에 같은 입력 표를 적용해 동일한 결과나 의미가 같은 실패가 나와야 합니다."
+    },
+    "pitfalls": [
+      "테스트가 객체의 필드 배치까지 고정하면 내부 개선이 어려워집니다. 가격·수량·합계라는 공개 계약에 검증을 맞춥니다."
+    ],
+    "quiz": [
+      {
+        "question": "Clock을 전달하는 이유는 무엇인가요?",
+        "answer": "현재 시간을 직접 읽으면 자정이나 만료 경계를 재현하기 어렵습니다. 고정 Clock을 주입하면 같은 시나리오를 반복해서 검증할 수 있습니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/Clock.html"
+      }
+    ]
+  }
+]

@@ -1,0 +1,246 @@
+[
+  {
+    "id": "test-design",
+    "goal": "관찰 가능한 동작을 기준으로 테스트 범위를 나눈다.",
+    "intro": "주문 기능의 중요한 약속은 특정 private 메서드를 호출하는 순서보다 유효한 요청을 한 번 저장하고 실패 시 잘못된 상태를 남기지 않는 것입니다.",
+    "sections": [
+      "테스트 이름은 입력 조건과 기대 행동을 설명합니다. 성공값뿐 아니라 발생하지 않아야 할 부수 효과도 검증합니다. 구현을 그대로 복사한 기대값은 같은 버그를 공유할 수 있습니다.",
+      "정상·경계·오류를 입력 표로 만듭니다. 수량 0·최대값·재고와 같은 값·초과값을 포함합니다. 데이터가 존재하지 않거나 외부 호출이 중간에 실패하는 흐름도 고려합니다.",
+      "단위 테스트는 작은 규칙을 빠르게, 슬라이스는 특정 프레임워크 경계를, 통합은 실제 협력 관계를, E2E는 사용 흐름을 검증합니다. 모든 시나리오를 가장 무거운 계층에서 반복하지 않습니다.",
+      "현재 시간·난수·UUID·외부 API는 재현성을 흐릴 수 있습니다. Clock·생성기·포트 인터페이스로 통제 가능한 입력을 전달합니다. 스레드 테스트는 임의 sleep보다 조건·신호·완료 대기를 사용합니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "var fixed = java.time.Clock.fixed(\n    java.time.Instant.parse(\"2026-01-01T00:00:00Z\"), java.time.ZoneOffset.UTC);\nvar expiry = java.time.Instant.now(fixed).plusSeconds(60);\nassertEquals(java.time.Instant.parse(\"2026-01-01T00:01:00Z\"), expiry);"
+      }
+    ],
+    "explanation": "시간을 고정하면 자정·만료 직전·직후를 매번 같은 조건으로 테스트할 수 있습니다. 현재 시스템 시간을 기대값에 다시 읽어 넣지 않습니다.",
+    "exercise": {
+      "steps": [
+        "주문 요구사항을 입력·기대 결과·실패 후 상태 표로 만든다.",
+        "만료 경계 테스트를 고정 Clock으로 작성해 반복 실행한다."
+      ],
+      "expected": "실패한 테스트가 어떤 계약을 위반했는지 이름과 검증 메시지만으로 알 수 있어야 합니다."
+    },
+    "pitfalls": [
+      "테스트가 실행 순서나 이전 테스트의 데이터에 의존하면 단독 실행과 CI 결과가 달라집니다."
+    ],
+    "quiz": [
+      {
+        "question": "단위 테스트가 많은데도 통합 테스트가 필요한 이유는 무엇인가요?",
+        "answer": "대역은 실제 DB·프록시·직렬화·보안 설정의 차이를 숨길 수 있습니다. 경계가 연결될 때의 계약은 실제 구성으로 확인해야 합니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.junit.org/current/user-guide/"
+      }
+    ]
+  },
+  {
+    "id": "junit",
+    "goal": "반복 입력과 예외·상태 검증을 읽기 쉬운 테스트로 작성한다.",
+    "intro": "수량 검증의 여러 입력은 파라미터화 테스트로 묶되 실패했을 때 어떤 입력이 문제였는지 알아볼 수 있어야 합니다.",
+    "sections": [
+      "@BeforeEach는 테스트마다 준비하고 @BeforeAll은 공통 준비를 수행합니다. 테스트 인스턴스 수명과 병렬 실행 설정에 따라 공유 필드가 간섭할 수 있습니다. @AfterEach의 정리도 실패 상황에서 필요합니다.",
+      "@ParameterizedTest와 @ValueSource·@CsvSource는 같은 규칙의 여러 입력을 검증합니다. 서로 다른 동작을 하나의 조건문 많은 테스트에 억지로 묶지 않습니다.",
+      "assertThrows나 AssertJ의 예외 검증으로 종류와 필요한 메시지를 확인합니다. Kotlin은 백틱 이름으로 시나리오를 표현할 수 있습니다. AssertJ·JUnit 중 어느 스타일이든 실패 메시지가 구체적인지 봅니다.",
+      "테스트 데이터 빌더는 유효한 기본값과 중요한 변경값을 드러냅니다. fixture가 너무 많은 자동 데이터를 만들면 검증 의도가 흐려집니다. 각 테스트에서 중요한 조건은 눈에 보이게 지정합니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "@ParameterizedTest\n@ValueSource(ints = {0, -1, -100})\nvoid rejectsInvalidQuantity(int quantity) {\n    assertThrows(IllegalArgumentException.class,\n        () -> new OrderLine(1200L, quantity));\n}"
+      },
+      {
+        "label": "Kotlin",
+        "code": "@ParameterizedTest\n@ValueSource(ints = [0, -1, -100])\nfun `0 이하 수량은 주문할 수 없다`(quantity: Int) {\n    assertThrows(IllegalArgumentException::class.java) {\n        OrderLine(1200L, quantity)\n    }\n}"
+      }
+    ],
+    "explanation": "앞 언어 단원의 OrderLine과 JUnit Jupiter 파라미터화 테스트 의존성·import가 필요합니다. 각 입력이 개별 결과로 보고됩니다.",
+    "exercise": {
+      "steps": [
+        "수량 1·최대 허용값의 성공 테스트를 별도로 추가한다.",
+        "잘못된 구현을 임시로 넣어 테스트가 실제로 실패하는지 확인한 뒤 복구한다."
+      ],
+      "expected": "오류 입력별 결과가 보고되고 생성 실패 뒤 유효하지 않은 객체가 사용되지 않아야 합니다."
+    },
+    "pitfalls": [
+      "예외 클래스만 넓게 Exception으로 검사하면 다른 원인의 실패도 통과할 수 있습니다. 기대하는 실패 계약을 좁게 검증합니다."
+    ],
+    "quiz": [
+      {
+        "question": "하나의 테스트에서 너무 많은 동작을 검증하면 왜 어려워지나요?",
+        "answer": "첫 실패 이후의 검증은 실행되지 않을 수 있고 원인이 여러 단계에 흩어집니다. 같은 계약의 관련 결과는 묶되 독립적인 시나리오는 나눕니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.junit.org/current/user-guide/#writing-tests-parameterized-tests"
+      }
+    ]
+  },
+  {
+    "id": "doubles",
+    "goal": "테스트 대역이 가리는 경계와 검증할 상호작용을 정한다.",
+    "intro": "외부 결제 API를 매 단위 테스트에서 실제 호출할 필요는 없습니다. 대신 대역이 실제 실패 방식과 계약을 얼마나 충실히 표현하는지 확인합니다.",
+    "sections": [
+      "Dummy는 자리 채움, Stub은 정해진 응답, Fake는 단순한 동작 구현, Spy는 실제 동작 관찰, Mock은 기대 상호작용 검증에 사용합니다. 용어보다 해당 대역이 무엇을 대신하는지 명확히 설명합니다.",
+      "Mockito는 Java 생태계에서 널리 쓰이고 MockK는 Kotlin 문법·코루틴 지원에 맞는 기능을 제공합니다. final·null·suspend 처리와 사용하는 버전의 지원을 확인해 선택합니다.",
+      "알림이 한 번만 나가야 하는 등의 상호작용은 의미 있는 계약입니다. 반면 내부 getter 호출 횟수나 구현 순서를 과도하게 검증하면 리팩터링마다 테스트가 깨집니다.",
+      "가격·재고 규칙 자체를 모킹하면 실제 검증할 업무 동작이 사라집니다. 도메인 객체는 실제로 사용하고 외부 저장·시간·네트워크 경계를 대역으로 바꾸는 방식부터 시작합니다."
+    ],
+    "examples": [
+      {
+        "label": "Kotlin",
+        "code": "class RecordingNotifier : Notifier {\n    val sent = mutableListOf<Long>()\n    override fun orderPlaced(id: Long) { sent += id }\n}\n// 실행 후: check(notifier.sent == listOf(orderId))"
+      }
+    ],
+    "explanation": "Notifier는 알림 경계 인터페이스라고 가정합니다. 이 Fake는 전송된 ID를 관찰하지만 실제 네트워크 전달·인증·재시도는 검증하지 않습니다.",
+    "exercise": {
+      "steps": [
+        "주문 성공 시 알림 1회, 저장 실패 시 알림 0회를 검증한다.",
+        "결제 Stub이 타임아웃을 던질 때 주문 상태가 어떻게 되는지 테스트한다."
+      ],
+      "expected": "대역을 사용해도 실제 도메인 규칙은 실행되고 검증하지 않은 외부 경계가 명시되어야 합니다."
+    },
+    "pitfalls": [
+      "실제 클라이언트가 던지지 않는 예외만 Stub에 넣으면 운영 복구 경로와 테스트가 어긋날 수 있습니다."
+    ],
+    "quiz": [
+      {
+        "question": "Fake 저장소 테스트가 통과하면 DB 테스트를 생략해도 되나요?",
+        "answer": "Fake는 SQL·제약·격리·매핑을 재현하지 못할 수 있습니다. 서비스 규칙의 빠른 검증과 DB 계약 검증을 따로 둡니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://site.mockito.org/"
+      }
+    ]
+  },
+  {
+    "id": "spring-tests",
+    "goal": "프레임워크 검증 범위와 트랜잭션·스레드 경계를 맞춘다.",
+    "intro": "@SpringBootTest를 모든 테스트에 붙이면 간단한 계산도 컨텍스트 시작을 기다립니다. 반대로 슬라이스만으로 전체 Bean 연결을 검증할 수는 없습니다.",
+    "sections": [
+      "@WebMvcTest는 MVC 관련 범위를, @DataJpaTest는 JPA 관련 범위를 집중 검증합니다. 필요한 협력 Bean은 대역이나 명시 import로 준비합니다. Boot 버전에 따라 테스트 애너테이션의 패키지·모듈을 확인합니다.",
+      "@SpringBootTest는 앱의 넓은 구성을 사용합니다. RANDOM_PORT는 실제 서버를 띄우므로 HTTP 호출·직렬화·필터를 함께 확인할 수 있습니다. 서버가 있다고 외부 프록시나 TLS까지 검증된 것은 아닙니다.",
+      "컨텍스트 캐시는 동일한 테스트 구성을 재사용합니다. 테스트마다 속성·대역·프로필을 다르게 만들면 캐시가 분산되고 느려질 수 있습니다. @DirtiesContext는 실제로 컨텍스트 오염을 해결해야 할 때 사용합니다.",
+      "테스트 스레드의 트랜잭션과 실제 HTTP 서버 스레드의 트랜잭션은 다릅니다. 테스트의 자동 롤백이 서버가 저장한 데이터를 지워 주지 않을 수 있으므로 격리·정리 전략을 둡니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)\nclass OrderHttpTest {\n    @LocalServerPort int port;\n    // 실제 HTTP 클라이언트로 요청하고 별도 저장소 조회로 결과를 확인한다.\n}"
+      }
+    ],
+    "explanation": "Boot 4에서는 해당 웹 테스트 모듈과 애너테이션 패키지를 공식 API에서 확인합니다. 주석 위치에 실제 요청·인가·데이터 정리를 작성하는 구조 예시입니다.",
+    "exercise": {
+      "steps": [
+        "같은 주문 시나리오에서 단위·MVC 슬라이스·실제 HTTP 테스트가 각각 잡는 실패를 정리한다.",
+        "HTTP 테스트가 만든 데이터를 다음 테스트가 읽지 않도록 정리 정책을 구현한다."
+      ],
+      "expected": "테스트 목적에 맞는 컨텍스트만 시작하고 스레드가 다른 저장 작업을 잘못 롤백했다고 가정하지 않아야 합니다."
+    },
+    "pitfalls": [
+      "모든 테스트에 @DirtiesContext를 붙여 상태 오염을 숨기면 실행이 느려지고 원인은 남습니다."
+    ],
+    "quiz": [
+      {
+        "question": "@DataJpaTest에서 성공한 서비스 주입이 전체 앱에서도 보장되나요?",
+        "answer": "슬라이스는 선택된 구성만 로드합니다. 전체 앱의 후보 충돌·프로필·추가 설정은 전체 컨텍스트 검증으로 확인해야 합니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.spring.io/spring-boot/reference/testing/spring-boot-applications.html"
+      }
+    ]
+  },
+  {
+    "id": "testcontainers",
+    "goal": "격리된 실제 의존성으로 DB·외부 호출 실패를 재현한다.",
+    "intro": "실제 DB의 동작이 중요한 테스트에는 그 DB를 준비해야 합니다. Testcontainers는 테스트가 사용할 컨테이너와 연결 정보를 함께 관리하는 데 도움이 됩니다.",
+    "sections": [
+      "PostgreSQL 컨테이너는 임의의 호스트 포트를 사용할 수 있으므로 5432를 하드코딩하지 않습니다. 사용하는 이미지 버전을 고정하고 Docker 호환 런타임이 필요한 환경임을 명시합니다.",
+      "@ServiceConnection은 지원되는 컨테이너에서 Boot 연결 정보를 제공할 수 있습니다. 테스트마다 생성할지 클래스·컨텍스트 동안 공유할지 수명을 정합니다. 컨테이너 종료 뒤 재사용된 컨텍스트가 끊긴 연결을 가리키지 않게 합니다.",
+      "마이그레이션·FK·유니크 제약·락 충돌을 실제 DB에서 검증합니다. 동시성 테스트는 별도 연결과 동시 진입 신호를 사용하고 모든 작업 종료 후 상태를 확인합니다.",
+      "외부 HTTP는 스텁 서버로 지연·500·응답 유실 등을 재현할 수 있습니다. 실제 주소를 실수로 호출하지 않도록 테스트 설정을 격리합니다. 스텁은 제공자 계약 테스트와 함께 관리합니다."
+    ],
+    "examples": [
+      {
+        "label": "Java",
+        "code": "@TestConfiguration(proxyBeanMethods = false)\nclass DatabaseTestConfig {\n    @Bean\n    @ServiceConnection\n    org.testcontainers.postgresql.PostgreSQLContainer postgres() {\n        return new org.testcontainers.postgresql.PostgreSQLContainer(\"postgres:17.6\");\n    }\n}"
+      }
+    ],
+    "explanation": "Testcontainers 2.x의 PostgreSQL 모듈 API입니다. 테스트에 @Import(DatabaseTestConfig.class)를 적용하고 Boot Testcontainers 지원·PostgreSQL 드라이버를 추가합니다. Bean으로 관리해 컨텍스트와 컨테이너 수명을 맞춥니다. 이미지 패치 버전은 학습 환경에서 고정한 뒤 지원·보안 업데이트를 검토합니다.",
+    "exercise": {
+      "steps": [
+        "컨테이너의 임의 포트로 앱이 자동 연결되는지 확인한다.",
+        "같은 요청 키를 두 연결에서 삽입해 UNIQUE 제약으로 하나만 성공하는지 검증한다."
+      ],
+      "expected": "개발자의 기존 DB와 무관하게 새 환경에서 테스트가 재현되어야 합니다."
+    },
+    "pitfalls": [
+      "컨테이너를 재사용하면 테스트 데이터도 남을 수 있습니다. 속도 개선과 데이터 격리의 책임을 혼동하지 않습니다."
+    ],
+    "quiz": [
+      {
+        "question": "컨테이너가 시작됐다는 사실만으로 DB가 준비됐다고 볼 수 있나요?",
+        "answer": "프로세스 생성과 서비스 준비는 다릅니다. 적절한 대기 전략·상태 확인 뒤 연결하고, 테스트가 시작할 스키마도 준비해야 합니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://java.testcontainers.org/modules/databases/postgres/"
+      }
+    ]
+  },
+  {
+    "id": "ci-quality",
+    "goal": "로컬과 CI의 검증 명령·데이터·실패 자료를 맞춘다.",
+    "intro": "CI는 다른 컴퓨터에서 같은 약속을 검사하는 과정입니다. 로컬에서만 존재하는 환경 변수나 DB 때문에 결과가 달라지지 않게 구성합니다.",
+    "sections": [
+      "Gradle의 test·check·build 관계를 확인하고 필수 검증을 하나의 진입점으로 묶습니다. 컴파일·정적 검사·테스트·패키징 실패를 구분합니다. 테스트 0개인 성공도 감지해야 합니다.",
+      "병렬 테스트는 전역 상태·고정 포트·공유 파일·DB 데이터 충돌을 드러냅니다. flaky test를 재시도만으로 숨기지 말고 시간·순서·외부 의존성의 원인을 찾습니다.",
+      "커버리지는 실행되지 않은 영역을 찾는 자료입니다. 높은 수치가 올바른 기대값·경계·동시성을 보장하지 않습니다. 핵심 불변식과 실패 경로의 테스트를 따로 검토합니다.",
+      "실패 로그·JUnit XML·HTML 보고서를 CI 산출물로 보관합니다. JDK·OS·의존성 버전과 random seed 등 재현 조건을 남기되 비밀값은 출력하지 않습니다. 실패한 테스트만 재실행해도 재현되는지 확인합니다."
+    ],
+    "examples": [
+      {
+        "label": "터미널",
+        "code": "./gradlew clean check\n./gradlew test --tests '*OrderServiceTest'\n./gradlew test --rerun-tasks"
+      }
+    ],
+    "explanation": "첫 명령은 정해진 검증 묶음, 두 번째는 범위 축소, 세 번째는 캐시·최신 상태 판정을 건너뛰고 테스트 태스크를 다시 실행하는 진단에 사용합니다.",
+    "exercise": {
+      "steps": [
+        "실패 테스트의 보고서를 CI에서 다운로드할 수 있게 보관한다.",
+        "테스트 순서와 병렬 실행을 바꿔 공유 데이터 의존이 없는지 확인한다."
+      ],
+      "expected": "실패 원인을 로그와 보고서로 재현하고 같은 명령이 로컬·CI에서 같은 검증을 수행해야 합니다."
+    },
+    "pitfalls": [
+      "실패한 테스트를 삭제해 빌드를 초록색으로 만드는 대신 계약 변경인지 실제 결함인지 먼저 판단합니다."
+    ],
+    "quiz": [
+      {
+        "question": "커버리지 100%면 경계 오류가 없다고 할 수 있나요?",
+        "answer": "같은 줄을 실행해도 입력 조합과 기대값이 잘못되면 오류를 놓칩니다. 수치와 함께 경계·실패 후 상태·동시 실행의 불변식을 검증해야 합니다."
+      }
+    ],
+    "sources": [
+      {
+        "title": "공식 문서에서 확인하기",
+        "url": "https://docs.gradle.org/current/userguide/java_testing.html"
+      }
+    ]
+  }
+]
