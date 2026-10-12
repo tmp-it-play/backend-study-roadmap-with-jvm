@@ -32,9 +32,9 @@ export default function Roadmap() {
   }, []);
   return <div className="home">
     <section className="hero"><span className="cloud cloud-one" /><span className="cloud cloud-two" /><span className="sun" />
-      <p className="hero-languages"><span>Java</span><i /> <span>Kotlin</span><i /> <span>Spring Boot</span></p>
-      <h1>JVM 백엔드 학습</h1><div className="road-sign-title">로드맵 <span aria-hidden="true"><ArrowIcon /></span></div>
-      <p className="hero-description">언어의 기본기부터 서비스 운영까지.<br />표지판을 따라, 하나씩 이해하며 나아가세요.</p>
+      <p className="hero-languages"><span>Java</span><i /> <span>Kotlin</span><i /> <span>JVM</span></p>
+      <h1>Spring Boot 백엔드</h1><div className="road-sign-title">로드맵 <span aria-hidden="true"><ArrowIcon /></span></div>
+      <p className="hero-description">Java와 Kotlin으로 배우는 서비스 개발과 운영.<br />기초부터 Spring Boot 실전까지.</p>
       <div className="hero-stats"><span>기본 <b>15</b>단계</span><span>학습 본문 <b>{totalChapters}</b>개</span><span>보충 지식 <b>{notes.length}</b>개</span></div>
       <Skyline />
     </section>

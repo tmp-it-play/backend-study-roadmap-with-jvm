@@ -22,4 +22,4 @@ createServer(async (request, response) => {
     response.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
     response.end(request.method === 'HEAD' ? undefined : await readFile(resolve(root, '404.html')));
   }
-}).listen(port, '127.0.0.1', () => console.log(`JVM 로드맵: http://127.0.0.1:${port}`));
+}).listen(port, '127.0.0.1', () => console.log(`Spring Boot 로드맵: http://127.0.0.1:${port}`));

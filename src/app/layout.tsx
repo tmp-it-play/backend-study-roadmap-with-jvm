@@ -12,8 +12,8 @@ const suit = localFont({
 });
 
 export const metadata: Metadata = {
-  title: { default: 'JVM 백엔드 학습 로드맵', template: '%s · JVM 로드맵' },
-  description: 'Java와 Kotlin의 기본기부터 JVM, Spring Boot, 데이터베이스, 테스트와 운영까지 이어지는 상세 학습 로드맵.',
+  title: { default: 'Spring Boot 백엔드 로드맵', template: '%s · Spring Boot 로드맵' },
+  description: 'Java와 Kotlin을 바탕으로 Spring Boot 서비스 개발을 배우는 백엔드 로드맵. 언어와 JVM 기초부터 데이터베이스, 테스트, 배포와 운영까지 이어집니다.',
 };
 export const viewport: Viewport = { themeColor: '#094d24' };
 
