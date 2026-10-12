@@ -262,11 +262,18 @@ progress::-moz-progress-bar { background: var(--sun); }
 .note-links a { color: #387144; text-decoration: underline; text-underline-offset: 3px; }
 .note-links a:first-child { margin-right: auto; }
 .code-compare { margin: 17px 0; border-radius: 6px; overflow: hidden; background: #1d2733; color: #e1edf3; }
-.code-tabs { display: flex; border-bottom: 1px solid #40505d; background: #263543; }
+.code-header { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; padding-right: 10px; border-bottom: 1px solid #40505d; background: #263543; }
+.code-tabs { display: flex; flex-wrap: wrap; min-width: 0; }
 .code-tabs button { padding: 9px 16px; font-size: 11px; color: #c0d2e0; background: transparent; border-bottom: 2px solid transparent; }
 .code-tabs button[aria-pressed='true'] { color: #ffdb62; border-bottom-color: #ffdb62; }
 .code-tabs button:focus-visible { outline-color: #ffdb62; outline-offset: -4px; }
 .code-compare pre { padding: 19px; margin: 0; overflow-x: auto; font: 12px/1.85 ui-monospace, SFMono-Regular, Menlo, monospace; tab-size: 4; }
+.code-label { padding: 9px 16px; font-size: 11px; color: #c0d2e0; }
+.copy-button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0; min-width: 70px; min-height: 36px; padding: 6px 10px; margin: 4px 0 4px auto; border: 1px solid #536979; border-radius: 4px; background: #334858; color: #e1edf3; font-size: 11px; }
+.copy-button:hover { background: #425c70; }
+.copy-button:focus-visible { outline-color: #ffdb62; outline-offset: 2px; }
+.copy-button:disabled { cursor: wait; }
+.copy-error { flex-basis: 100%; padding: 0 12px 10px; font-size: 11px; color: #ffdb9b; }
 .notes-hero { background: linear-gradient(#faedb6, #edf3da); }
 .notes-content { max-width: 920px; padding: 30px 42px 60px; margin: 0 auto; }
 .notes-controls { display: flex; gap: 12px; }
@@ -423,7 +430,7 @@ progress::-moz-progress-bar { background: var(--sun); }
   .lesson-section h2 { font-size: 22px; }
   .lesson-question { padding: 16px; }
 }
-@media print { .lesson-code pre[hidden] { display: block; } .lesson-question details > p { display: block; } }
+@media print { .lesson-code pre[hidden] { display: block; } .lesson-question details > p { display: block; } .copy-button, .copy-error { display: none; } }
 @media print { .top, .sidebar, .page-toc, .stage-pager, .chapter-check, .skip-link { display: none; } .main { margin: 0; padding: 0; } .detail-layout { display: block; padding: 0; } .chapter { break-inside: avoid; } .detail-hero { background: white; } }
 
 /* 실행 실습과 순서 모형 */
@@ -464,7 +471,7 @@ progress::-moz-progress-bar { background: var(--sun); }
 .project-lab h2 { margin-top: 7px; }
 .project-lab h3 { font-size: 15px; margin-top: 24px; margin-bottom: 10px; }
 .practice-requires { color: var(--sub); font-size: 12px; }
-.project-lab pre { max-width: 100%; overflow: auto; padding: 18px; background: #242738; color: #f2f4ed; font: 13px/1.8 ui-monospace, monospace; border-radius: 5px; }
+.project-lab .code-compare pre { font-size: 13px; }
 .project-lab details { font-size: 12px; padding: 12px 0; }
 .project-lab summary { text-decoration: underline; text-underline-offset: 4px; }
 .project-lab details li { overflow-wrap: anywhere; margin: 7px 0; }
