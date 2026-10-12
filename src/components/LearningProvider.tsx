@@ -5,8 +5,8 @@ import { allKeys } from '@/lib/curriculum';
 
 const STORAGE_KEY = 'jvm-roadmap:learned:v1';
 const Learning = createContext<{
-  completed: string[]; ready: boolean; storageError: boolean; toggle: (key: string) => void;
-}>({ completed: [], ready: false, storageError: false, toggle: () => {} });
+  completed: string[]; ready: boolean; storageError: boolean; toggle: (key: string) => void; markComplete: (key: string) => void;
+}>({ completed: [], ready: false, storageError: false, toggle: () => {}, markComplete: () => {} });
 
 export function LearningProvider({ children }: { children: React.ReactNode }) {
   const [completed, setCompleted] = useState<string[]>([]);
@@ -25,13 +25,19 @@ export function LearningProvider({ children }: { children: React.ReactNode }) {
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
   }, []);
-  const toggle = useCallback((key: string) => {
-    if (!allKeys.has(key) || !ready) return;
-    const next = completed.includes(key) ? completed.filter((k) => k !== key) : [...completed, key];
+  const save = useCallback((next: string[]) => {
     setCompleted(next);
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); setStorageError(false); }
     catch { setStorageError(true); }
-  }, [completed, ready]);
-  return <Learning.Provider value={{ completed, ready, toggle, storageError }}>{children}</Learning.Provider>;
+  }, []);
+  const toggle = useCallback((key: string) => {
+    if (!allKeys.has(key) || !ready) return;
+    save(completed.includes(key) ? completed.filter((k) => k !== key) : [...completed, key]);
+  }, [completed, ready, save]);
+  const markComplete = useCallback((key: string) => {
+    if (!ready || !allKeys.has(key) || completed.includes(key)) return;
+    save([...completed, key]);
+  }, [completed, ready, save]);
+  return <Learning.Provider value={{ completed, ready, toggle, markComplete, storageError }}>{children}</Learning.Provider>;
 }
 export const useLearning = () => useContext(Learning);

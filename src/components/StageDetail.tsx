@@ -22,7 +22,7 @@ export default function StageDetail({ stage }: { stage: Stage }) {
         {stage.prerequisites.length ? stage.prerequisites.map((id) => { const s = stages.find((s) => s.id === id)!; return <Link key={id} href={stageHref(s)}>{s.title}</Link>; }) : <span>처음 시작해도 괜찮습니다.</span>}
         {stage.anyPrerequisites && <span className="either-prerequisite">언어 기초: {stage.anyPrerequisites.map((id, i) => <span key={id}>{i > 0 && ' 또는 '}<Link href={`/stages/${id}`}>{stages.find((s) => s.id === id)!.title}</Link></span>)}</span>}
       </div></div>
-      <section id="outline"><div className="section-heading"><h2>상세 학습 목차</h2><span>{stage.chapters.length}개 학습 단위</span></div><p className="outline-intro">각 단원에서 개념과 예제를 읽고 실습의 기대 결과를 확인하세요. 셀프 체크 해설까지 검토한 뒤 학습 완료를 표시할 수 있습니다.</p>
+      <section id="outline"><div className="section-heading"><h2>상세 학습 목차</h2><span>{stage.chapters.length}개 학습 단위</span></div><p className="outline-intro">단원 본문을 열면 자동으로 학습 완료가 표시됩니다. 개념과 예제를 읽고 실습과 셀프 체크도 확인하세요. 완료 표시는 언제든 직접 바꿀 수 있습니다.</p>
         <div className="chapters">{stage.chapters.map((chapter, i) => {
           const key = chapterKey(stage, chapter); const learned = completed.includes(key);
           return <section id={chapter.id} key={chapter.id} className={`chapter ${learned ? 'chapter-complete' : ''}`}>
