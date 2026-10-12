@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { ArrowIcon, CoffeeEmoji } from '@/components/Icons';
 import { useEffect, useRef, useState } from 'react';
-import { stages, coreStages, coreKeys, notes, totalChapters, chapterKey, lessonHref, numberOf, stageHref, stageText } from '@/lib/curriculum';
+import { stages, coreStages, coreKeys, notes, chapterKey, lessonHref, numberOf, stageHref, stageText } from '@/lib/curriculum';
 import { useLearning } from './LearningProvider';
 import { Skyline } from './Scenery';
 import ScrollCar from './ScrollCar';
@@ -32,10 +32,8 @@ export default function Roadmap() {
   }, []);
   return <div className="home">
     <section className="hero"><span className="cloud cloud-one" /><span className="cloud cloud-two" /><span className="sun" />
-      <p className="hero-languages"><span>Java</span><i /> <span>Kotlin</span><i /> <span>JVM</span></p>
       <h1>Spring Boot 백엔드</h1><div className="road-sign-title">로드맵 <span aria-hidden="true"><ArrowIcon /></span></div>
       <p className="hero-description">Java와 Kotlin으로 배우는 서비스 개발과 운영.<br />기초부터 Spring Boot 실전까지.</p>
-      <div className="hero-stats"><span>기본 <b>15</b>단계</span><span>학습 본문 <b>{totalChapters}</b>개</span><span>보충 지식 <b>{notes.length}</b>개</span></div>
       <Skyline />
     </section>
     <div className="journey-intro">
@@ -47,12 +45,16 @@ export default function Roadmap() {
         <Link className="go-button" href={nextStage && nextChapter ? lessonHref(nextStage, nextChapter) : '/stages/advanced'}>{done ? '이어서 보기' : '출발하기'} <span aria-hidden="true"><ArrowIcon /></span></Link>
         <div className="overall-progress"><span>기본 과정</span><progress value={done} max={coreKeys.length} aria-label="기본 과정 완료율" /><span>{ready ? `${done} / ${coreKeys.length}` : `0 / ${coreKeys.length}`}</span><strong>{percent}%</strong></div>
       </section>
+      <Link className="notes-entry" href="/notes" aria-labelledby="notes-entry-title" aria-describedby="notes-entry-description">
+        <span className="notes-entry-icon"><CoffeeEmoji /></span>
+        <span className="notes-entry-text"><strong id="notes-entry-title">보충 지식 둘러보기</strong><span id="notes-entry-description">헷갈리는 용어와 개념을 짧게 살펴보세요.</span></span>
+        <ArrowIcon />
+      </Link>
       <details className="route-guide"><summary>어디서부터 시작하면 좋을까요?<span aria-hidden="true">⌄</span></summary><div>
         <p><strong>처음이라면</strong> 환경 설정 → Java → Kotlin → JVM → Spring 순서로 이동하세요.</p>
         <p><strong>Java를 안다면</strong> Kotlin과 상호운용부터, <strong>Kotlin을 안다면</strong> Java의 객체·제네릭·예외를 비교하며 시작하세요.</p>
         <p><strong>Spring을 써 봤다면</strong> 단계별 완료 기준으로 점검하고 트랜잭션·동시성·운영을 보강하세요.</p>
       </div></details>
-      <div className="curriculum-notice"><span aria-hidden="true">▤</span><p><strong>개념을 읽고, 예제로 확인하세요.</strong> 110개 단원의 본문과 실습, 셀프 체크 해설을 제공합니다. 궁금한 용어는 보충 지식에서 함께 살펴보세요.</p></div>
       <div className="roadmap-controls"><div className="search-field"><span aria-hidden="true">⌕</span><input ref={input} id="search" type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="개념이나 목차 검색 · 예: 트랜잭션, DSL" aria-label="로드맵 검색" /></div>
         <div className="view-toggle" role="group" aria-label="로드맵 보기 방식"><button aria-pressed={view === 'road'} onClick={() => setView('road')}>도로</button><button aria-pressed={view === 'list'} onClick={() => setView('list')}>목록</button></div>
       </div>
