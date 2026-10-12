@@ -10,7 +10,8 @@
     "check:content": "node scripts/check-content.mjs",
     "predev": "npm run package:labs",
     "package:labs": "node scripts/package-labs.mjs",
-    "test:practice": "node --experimental-strip-types --test scripts/practice-models.test.mjs"
+    "test:practice": "node --experimental-strip-types --test scripts/practice-models.test.mjs",
+    "test:road": "node --experimental-strip-types --test scripts/road-path.test.mjs"
   },
   "dependencies": {
     "@fontsource/do-hyeon": "^5.3.0",

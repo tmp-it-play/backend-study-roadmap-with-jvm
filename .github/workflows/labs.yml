@@ -17,6 +17,7 @@ jobs:
           java-version: '25'
       - run: npm ci
       - run: npm run test:practice
+      - run: npm run test:road
       - run: npm run build
       - run: ./gradlew --no-daemon test
         working-directory: examples/jvm-core

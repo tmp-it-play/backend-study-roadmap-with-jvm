@@ -5,7 +5,8 @@ import { ArrowIcon, CoffeeEmoji } from '@/components/Icons';
 import { useEffect, useRef, useState } from 'react';
 import { stages, coreStages, coreKeys, notes, totalChapters, chapterKey, lessonHref, numberOf, stageHref, stageText } from '@/lib/curriculum';
 import { useLearning } from './LearningProvider';
-import { Skyline, Car } from './Scenery';
+import { Skyline } from './Scenery';
+import ScrollCar from './ScrollCar';
 
 const areas = ['전체', ...new Set(stages.map((s) => s.area))];
 
@@ -15,6 +16,7 @@ export default function Roadmap() {
   const [area, setArea] = useState('전체');
   const [view, setView] = useState<'road' | 'list'>('road');
   const input = useRef<HTMLInputElement>(null);
+  const track = useRef<HTMLDivElement>(null);
   const q = query.trim().toLocaleLowerCase();
   const filtered = stages.filter((s) => (area === '전체' || s.area === area) && (!q || stageText(s).includes(q)));
   const noteResults = q ? notes.filter((n) => `${n.title} ${n.body}`.toLocaleLowerCase().includes(q)) : [];
@@ -56,17 +58,16 @@ export default function Roadmap() {
       <div className="filter-row"><label htmlFor="area">학습 영역</label><select id="area" value={area} onChange={(e) => setArea(e.target.value)}>{areas.map((a) => <option key={a}>{a}</option>)}</select><span role="status">{filtered.length}개 구간{q && ` · 보충 지식 ${noteResults.length}개`}</span></div>
     </div>
     {q && noteResults.length > 0 && <section className="note-results" aria-label="보충 지식 검색 결과"><h2>함께 찾은 보충 지식</h2><div>{noteResults.map((n) => <Link key={n.id} href={`/notes#${n.id}`}><CoffeeEmoji /> {n.title}</Link>)}</div></section>}
-    {filtered.length ? <div className={`track ${view === 'list' ? 'list-view' : ''}`}>
+    {filtered.length ? <div ref={track} className={`track ${view === 'list' ? 'list-view' : ''}`}>
       {filtered.map((s, index) => {
         const stageDone = s.chapters.filter((c) => completed.includes(chapterKey(s, c))).length;
         const isNext = nextStage?.id === s.id;
         const chapters = q ? s.chapters.filter((c) => `${s.title} ${s.area} ${c.title} ${c.topics.join(' ')}`.toLocaleLowerCase().includes(q)) : s.chapters;
         return <section key={s.id} className={`lap ${index % 2 ? 'left' : 'right'} ${s.optional ? 'optional-lap' : ''}`} id={`stage-${s.id}`}>
-          {isNext && <div className="current-car"><Car /><span>현재 목적지</span></div>}
           <div className="lap-body"><div className="lap-heading"><Link href={stageHref(s)} className="stage-sign"><small>{s.optional ? '선택 심화' : `${numberOf(s)}단계`} · {s.level}</small><h2>{s.title}</h2><span className="stage-sign-direction"><ArrowIcon className="stage-sign-arrow" /></span></Link>
             <p className="stage-goal"><span>이 구간의 목표</span>{s.goal}</p>
             <p className="stage-summary">{s.summary}</p>
-            <div className="stage-progress"><span className={`signal ${stageDone === s.chapters.length ? 'complete' : stageDone ? 'started' : ''}`} aria-hidden="true" /><span>{stageDone === s.chapters.length ? '학습 완료' : stageDone ? '학습 중' : '시작 전'}</span><span>{stageDone}/{s.chapters.length}</span></div>
+            <div className="stage-progress"><span className={`signal ${stageDone === s.chapters.length ? 'complete' : stageDone ? 'started' : ''}`} aria-hidden="true" /><span>{stageDone === s.chapters.length ? '학습 완료' : stageDone ? '학습 중' : '시작 전'}</span>{isNext && <span className="current-destination">현재 목적지</span>}<span>{stageDone}/{s.chapters.length}</span></div>
           </div><ol className="stops">{chapters.map((c) => {
             const learned = completed.includes(chapterKey(s, c));
             return <li key={c.id}><Link href={lessonHref(s, c)}><span className={`stop-number ${learned ? 'learned' : ''}`}>{learned ? '✓' : s.chapters.indexOf(c) + 1}</span><span className="stop-title"><strong>{c.title}</strong><span>{c.topics.slice(0, 2).join(' · ')}</span></span><span className="stop-arrow" aria-hidden="true">›</span></Link></li>;
@@ -74,6 +75,7 @@ export default function Roadmap() {
           <Link className="lap-more" href={stageHref(s)}>세부 목차와 실습 보기 <span aria-hidden="true"><ArrowIcon direction="up-right" /></span></Link>
         </section>;
       })}
+      {view === 'road' && <ScrollCar trackRef={track} layoutKey={`${area}:${q}`} />}
     </div> : <div className="empty-result"><h2>일치하는 목차가 없습니다</h2><p>검색어를 짧게 바꾸거나 학습 영역을 전체로 선택해 보세요.</p><button onClick={() => { setQuery(''); setArea('전체'); input.current?.focus(); }}>검색 초기화</button></div>}
     <footer className="road-footer"><div className="finish-sign">도착 <strong>직접 만든 서비스</strong></div><p>설명할 수 있고, 구현할 수 있고, 운영할 수 있도록.</p><Link href="/notes">잠깐 쉬어가는 보충 지식 <CoffeeEmoji /></Link><small>진도는 이 브라우저에 저장됩니다. 선택 심화는 기본 진도에 포함되지 않습니다.</small></footer>
   </div>;
