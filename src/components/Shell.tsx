@@ -46,7 +46,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   return <>
     <a className="skip-link" href="#main">본문으로 건너뛰기</a>
     <header className="top"><div className="top-inner">
-      <details ref={menu} className="mobile-menu"><summary aria-label="학습 메뉴">☰</summary><nav aria-label="모바일 학습 단계" onClick={() => { if (menu.current) menu.current.open = false; }}>{nav}</nav></details>
+      <details ref={menu} className="mobile-menu"><summary aria-label="학습 메뉴">☰</summary><nav aria-label="접이식 학습 단계" onClick={() => { if (menu.current) menu.current.open = false; }}>{nav}</nav></details>
       <Link href="/" className="brand">JVM <b>로드맵</b></Link>
       <Link href="/#search" className="search-link" aria-label="학습 내용 검색"><span aria-hidden="true">⌕</span> <span>어떤 개념이 궁금한가요?</span><kbd>⌘ K</kbd></Link>
       <Link className="header-notes" href="/notes">보충 지식 <span>{notes.length}</span></Link>
