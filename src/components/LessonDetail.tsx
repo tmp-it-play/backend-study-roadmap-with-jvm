@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ArrowIcon } from '@/components/Icons';
 import { stages, chapterKey, lessonHref, numberOf, stageHref, relatedNotes, type Stage, type Chapter } from '@/lib/curriculum';
 import type { Lesson } from '@/lib/lesson-types';
 import CodeExample from './CodeExample';
@@ -27,8 +28,8 @@ export default function LessonDetail({ stage, chapter, lesson }: { stage: Stage;
       <section id="pitfalls" className="lesson-section lesson-pitfall"><h2>흔한 오류</h2>{lesson.pitfalls.map((pitfall) => <p key={pitfall}>{pitfall}</p>)}</section>
       <section id="quiz" className="lesson-section"><h2>셀프 체크</h2>{lesson.quiz.map((item, i) => <div className="lesson-question" key={item.question}><h3>{i + 1}. {item.question}</h3><details><summary>해설 확인</summary><p>{item.answer}</p></details></div>)}</section>
       <LessonProgress chapterKey={chapterKey(stage, chapter)} />
-      {related.length > 0 && <section id="related" className="lesson-section"><h2>함께 읽을 보충 지식</h2><div className="lesson-related">{related.map((note) => <Link href={`/notes/#${note.id}`} key={note.id}>{note.title} ↗</Link>)}</div></section>}
-      <section id="sources" className="sources"><h2>공식 문서에서 더 읽기</h2><ul>{lesson.sources.map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer">{source.title} ↗</a></li>)}</ul></section>
+      {related.length > 0 && <section id="related" className="lesson-section"><h2>함께 읽을 보충 지식</h2><div className="lesson-related">{related.map((note) => <Link href={`/notes/#${note.id}`} key={note.id}>{note.title} <ArrowIcon direction="up-right" /></Link>)}</div></section>}
+      <section id="sources" className="sources"><h2>공식 문서에서 더 읽기</h2><ul>{lesson.sources.map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer">{source.title} <ArrowIcon direction="up-right" /></a></li>)}</ul></section>
       <nav className="stage-pager" aria-label="이전 다음 단원">
         {previous ? <Link href={lessonHref(previous.stage, previous.chapter)}><small>이전 단원</small><strong>← {previous.chapter.title}</strong></Link> : <Link href={stageHref(stage)}><small>현재 구간</small><strong>← 단계 목차</strong></Link>}
         {next ? <Link href={lessonHref(next.stage, next.chapter)}><small>{next.stage.optional && !stage.optional ? '선택 심화로 이어가기' : '다음 단원'}</small><strong>{next.chapter.title} →</strong></Link> : <Link href="/"><small>전체 경로</small><strong>로드맵 →</strong></Link>}

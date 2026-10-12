@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { ArrowIcon, CoffeeEmoji } from '@/components/Icons';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 import { coreKeys, stages, numberOf, notes, stageHref, chapterKey } from '@/lib/curriculum';
@@ -38,8 +39,8 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         {done > 0 && <span className="nav-done" aria-label={`${done}개 완료`}>{done === s.chapters.length ? '✓' : done}</span>}
       </Link>;
     })}
-    <Link href="/practice" className="nav-notes" aria-current={pathname === '/practice' ? 'page' : undefined}>직접 해보는 실습 <span>↗</span></Link>
-    <Link href="/notes" className="nav-notes" aria-current={pathname === '/notes' ? 'page' : undefined}>☕ 보충 지식 <span>{notes.length}</span></Link>
+    <Link href="/practice" className="nav-notes" aria-current={pathname === '/practice' ? 'page' : undefined}>직접 해보는 실습 <span><ArrowIcon direction="up-right" /></span></Link>
+    <Link href="/notes" className="nav-notes" aria-current={pathname === '/notes' ? 'page' : undefined}><span><CoffeeEmoji /> 보충 지식</span><span>{notes.length}</span></Link>
     <p className="nav-foot">Java와 Kotlin에서 출발해<br />Spring Boot 운영까지.</p>
   </>;
   return <>

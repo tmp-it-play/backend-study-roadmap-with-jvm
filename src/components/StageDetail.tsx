@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { ArrowIcon } from '@/components/Icons';
 import { stages, chapterKey, lessonHref, numberOf, relatedNotes, stageHref, type Stage } from '@/lib/curriculum';
 import { useLearning } from './LearningProvider';
 import NoteCard from './NoteCard';
@@ -34,8 +35,8 @@ export default function StageDetail({ stage }: { stage: Stage }) {
       </section>
       <section className="lab-panel" id="practice"><span className="callout-label">직접 만들어 보기</span><h2>이번 구간의 실습</h2><p>{stage.lab}</p><Link className="chapter-read" href={`/practice#lab-${stage.id}`}>실습 코드와 실행 안내 →</Link><span className="project-tag">공통 프로젝트: 회원 · 상품 · 주문 · 재고</span></section>
       <section className="completion-section" id="checkpoint"><h2>다음 단계로 가기 전</h2><p>코드, 테스트 결과 또는 짧은 설명으로 확인해 보세요.</p><ul>{stage.checks.map((check) => <li key={check}><span aria-hidden="true">✓</span>{check}</li>)}</ul></section>
-      {related.length > 0 && <section className="related-notes" id="side-notes"><div className="section-heading"><h2>잠깐, 이것도 알아두세요</h2><Link href="/notes">전체 보충 지식 ↗</Link></div>{related.map((note) => <NoteCard key={note.id} note={note} anchorId={`note-${note.id}`} />)}</section>}
-      <section className="sources" id="sources"><h2>공식 문서에서 더 읽기</h2><ul>{stage.sources.map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer">{source.title} ↗</a></li>)}</ul><p>예제 코드를 실행할 때는 사용하는 JDK·Kotlin·Spring Boot 버전의 문서를 확인하세요.</p></section>
+      {related.length > 0 && <section className="related-notes" id="side-notes"><div className="section-heading"><h2>잠깐, 이것도 알아두세요</h2><Link href="/notes">전체 보충 지식 <ArrowIcon direction="up-right" /></Link></div>{related.map((note) => <NoteCard key={note.id} note={note} anchorId={`note-${note.id}`} />)}</section>}
+      <section className="sources" id="sources"><h2>공식 문서에서 더 읽기</h2><ul>{stage.sources.map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer">{source.title} <ArrowIcon direction="up-right" /></a></li>)}</ul><p>예제 코드를 실행할 때는 사용하는 JDK·Kotlin·Spring Boot 버전의 문서를 확인하세요.</p></section>
       <nav className="stage-pager" aria-label="이전 다음 단계">{index > 0 ? <Link href={stageHref(stages[index - 1])}><small>이전 구간</small><strong>← {stages[index - 1].title}</strong></Link> : <Link href="/"><small>전체 경로</small><strong>← 로드맵</strong></Link>}
         {index < stages.length - 1 ? <Link href={stageHref(stages[index + 1])}><small>다음 구간</small><strong>{stages[index + 1].title} →</strong></Link> : <Link href="/"><small>돌아가기</small><strong>전체 로드맵 →</strong></Link>}
       </nav>
