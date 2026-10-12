@@ -1,0 +1,4 @@
+plugins { id 'java' }
+tasks.register('greet') {
+    doLast { println 'hello JVM' }
+}

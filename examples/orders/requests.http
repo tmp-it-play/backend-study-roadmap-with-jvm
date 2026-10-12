@@ -1,0 +1,30 @@
+### 공개 상품 목록
+GET http://127.0.0.1:8080/api/products
+
+### 세션 쿠키와 CSRF 토큰 받기
+GET http://127.0.0.1:8080/api/csrf
+
+### 로그인 (위 응답 token을 아래 자리에 넣고 클라이언트의 쿠키 저장을 켠다)
+POST http://127.0.0.1:8080/login
+Content-Type: application/x-www-form-urlencoded
+X-CSRF-TOKEN: {{csrf}}
+
+username=alice&password=alice-pass
+
+### 로그인 뒤 새 CSRF 토큰 받기
+GET http://127.0.0.1:8080/api/csrf
+
+### 주문 생성 (새 토큰 사용)
+POST http://127.0.0.1:8080/api/orders
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrf}}
+Idempotency-Key: my-first-order
+
+{"productId":1,"quantity":1}
+
+### 내 주문 목록
+GET http://127.0.0.1:8080/api/orders
+
+### 주문 취소
+POST http://127.0.0.1:8080/api/orders/{{orderId}}/cancel
+X-CSRF-TOKEN: {{csrf}}

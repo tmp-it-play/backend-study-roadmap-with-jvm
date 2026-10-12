@@ -1,0 +1,29 @@
+name: jvm-roadmap-orders
+services:
+  db:
+    image: postgres:17.6@sha256:00bc86618629af00d2937fdc5a5d63db3ff8450acf52f0636ec813c7f4902929
+    environment:
+      POSTGRES_DB: orders
+      POSTGRES_USER: orders
+      POSTGRES_PASSWORD: orders-local
+    ports: ["127.0.0.1:55432:5432"]
+    volumes: [orders-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orders -d orders"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+  app:
+    build: .
+    image: jvm-roadmap-orders:lab
+    environment:
+      SERVER_ADDRESS: 0.0.0.0
+      DB_URL: jdbc:postgresql://db:5432/orders
+      DB_USER: orders
+      DB_PASSWORD: orders-local
+    ports: ["127.0.0.1:8080:8080"]
+    depends_on:
+      db: {condition: service_healthy}
+    stop_grace_period: 20s
+volumes:
+  orders-data:
